@@ -14,7 +14,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/mappings.ts
+      file: ./src/mappings/compound/mappings.ts
       entities:
         - LendingProtocol
         - Market
@@ -43,6 +43,46 @@ dataSources:
           handler: handleNewLiquidationIncentive
         - event: NewPriceOracle(address,address)
           handler: handleNewPriceOracle
+  # - kind: ethereum/contract
+  #   name: CreamComptroller
+  #   network: mainnet
+  #   source:
+  #     address: "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B"
+  #     abi: Comptroller
+  #     startBlock: 7710671
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.6
+  #     language: wasm/assemblyscript
+  #     file: ./src/mappings/cream/mappings.ts
+  #     entities:
+  #       - LendingProtocol
+  #       - Market
+  #       - Token
+  #     abis:
+  #       - name: Comptroller
+  #         file: ./abis/Comptroller.json
+  #       - name: CToken
+  #         file: ./abis/CToken.json
+  #       - name: PriceOracle1
+  #         file: ./abis/PriceOracle1.json
+  #       - name: PriceOracle2
+  #         file: ./abis/PriceOracle2.json
+  #       - name: ERC20
+  #         file: ./abis/ERC20.json
+  #       - name: ERC20NameBytes
+  #         file: ./abis/ERC20NameBytes.json
+  #       - name: ERC20SymbolBytes
+  #         file: ./abis/ERC20SymbolBytes.json
+  #     eventHandlers:
+  #       - event: MarketListed(address)
+  #         handler: handleMarketListed
+  #       - event: NewCollateralFactor(address,uint256,uint256)
+  #         handler: handleNewCollateralFactor
+  #       - event: NewLiquidationIncentive(uint256,uint256)
+  #         handler: handleNewLiquidationIncentive
+  #       - event: NewPriceOracle(address,address)
+  #         handler: handleNewPriceOracle
 templates:
   - name: CToken
     kind: ethereum/contract
@@ -53,7 +93,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/mappings.ts
+      file: ./src/mappings/compound/mappings.ts
       entities:
         - Event
         - Market

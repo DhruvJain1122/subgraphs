@@ -9,12 +9,13 @@ import {
   BIGDECIMAL_ONE,
   CUSDT_ADDRESS,
   CTUSD_ADDRESS,
-} from "../../common/utils/constants";
-import { Token, LendingProtocol, Market } from "../../types/schema";
+  CREAM_COMPTROLLER_ADDRESS,
+} from "../../../common/utils/constants";
+import { Token, LendingProtocol, Market } from "../../../types/schema";
 import { Address, BigDecimal, log } from "@graphprotocol/graph-ts";
-import { PriceOracle2 } from "../../types/Comptroller/PriceOracle2";
-import { PriceOracle1 } from "../../types/Comptroller/PriceOracle1";
-import { exponentToBigDecimal } from "../utils/utils";
+import { PriceOracle2 } from "../../../types/Comptroller/PriceOracle2";
+import { PriceOracle1 } from "../../../types/Comptroller/PriceOracle1";
+import { exponentToBigDecimal } from "../../utils/utils";
 
 // returns the token price
 export function getUSDPriceOfToken(market: Market, blockNumber: i32): BigDecimal {
@@ -118,23 +119,7 @@ export function getTokenPrice(
 
 // get usdc price of ETH
 export function getUSDCPriceETH(blockNumber: i32): BigDecimal {
-  let protocol = LendingProtocol.load(COMPTROLLER_ADDRESS)!;
-  let oracle2Address = changetype<Address>(protocol._priceOracle);
-  let usdcPrice: BigDecimal;
-  let mantissaFactorBD = exponentToBigDecimal(18);
-
-  // see getTokenPrice() for explanation
-  if (blockNumber > 7715908) {
-    let priceOracle2 = PriceOracle2.bind(oracle2Address);
-    let mantissaDecimalFactorUSDC = 18 - USDC_DECIMALS + 18;
-    let bdFactorUSDC = exponentToBigDecimal(mantissaDecimalFactorUSDC);
-    let tryPrice = priceOracle2.try_getUnderlyingPrice(Address.fromString(CUSDC_ADDRESS));
-
-    usdcPrice = tryPrice.reverted ? BIGDECIMAL_ZERO : tryPrice.value.toBigDecimal().div(bdFactorUSDC);
-  } else {
-    let priceOracle1 = PriceOracle1.bind(Address.fromString(PRICE_ORACLE1_ADDRESS));
-    usdcPrice = priceOracle1.getPrice(Address.fromString(USDC_ADDRESS)).toBigDecimal().div(mantissaFactorBD);
-  }
+  const usdcPrice = getTokenPrice(blockNumber, Address.fromString(CUSDC_ADDRESS), Address.fromString(USDC_ADDRESS), USDC_DECIMALS)
   return usdcPrice;
 }
 

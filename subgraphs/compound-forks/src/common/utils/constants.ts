@@ -67,6 +67,37 @@ export const CCOMP_ADDRESS = "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4";
 export const CUSDT_ADDRESS = "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9";
 export const CTUSD_ADDRESS = "0x12392f67bdf24fae0af363c24ac620a2f67dad86";
 
+
+export const CREAM_COMPTROLLER_ADDRESS = "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b";
+interface ProtocolDataInterface{
+  [key:string]:{
+    COMP_ADDRESS: string;
+    CCOMP_ADDRESS: string;
+    CUSDT_ADDRESS: string;
+    CETH_ADDRESS: string;
+    COMP_BLOCK: number;
+    CCOMP_BLOCK: number;
+  }
+}
+export const PROTOCOL_DATA : ProtocolDataInterface = {
+  "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b":{
+      COMP_ADDRESS : "0xc00e94cb662c3520282e6f5717214004a7f26888",
+      CCOMP_ADDRESS : "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4",
+      CUSDT_ADDRESS : "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
+      CETH_ADDRESS : "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
+      COMP_BLOCK: 0,
+      CCOMP_BLOCK: 0
+  },
+  "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b3":{
+    COMP_ADDRESS : "0xc00e94cb662c3520282e6f5717214004a7f26888",
+    CCOMP_ADDRESS : "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4",
+    CUSDT_ADDRESS : "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
+    CETH_ADDRESS : "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
+    COMP_BLOCK: 0,
+    CCOMP_BLOCK: 0
+}
+}
+
 ////////////////////////
 ///// Type Helpers /////
 ////////////////////////

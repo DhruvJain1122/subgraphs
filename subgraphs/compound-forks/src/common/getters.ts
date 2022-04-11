@@ -21,6 +21,7 @@ import {
   ETH_SYMBOL,
   LENDING_TYPE,
   NETWORK_ETHEREUM,
+  PROTOCOL_DATA,
   PROTOCOL_NAME,
   PROTOCOL_RISK_TYPE,
   PROTOCOL_SLUG,
@@ -42,7 +43,7 @@ import { Comptroller } from "../types/Comptroller/Comptroller";
 //// Snapshots ////
 ///////////////////
 
-export function getOrCreateUsageMetricSnapshot(event: ethereum.Event): UsageMetricsDailySnapshot {
+export function getOrCreateUsageMetricSnapshot(event: ethereum.Event, protocolAddress: string): UsageMetricsDailySnapshot {
   // Number of days since Unix epoch
   let id: i64 = event.block.timestamp.toI64() / SECONDS_PER_DAY;
 
@@ -51,7 +52,7 @@ export function getOrCreateUsageMetricSnapshot(event: ethereum.Event): UsageMetr
 
   if (!usageMetrics) {
     usageMetrics = new UsageMetricsDailySnapshot(id.toString());
-    usageMetrics.protocol = COMPTROLLER_ADDRESS;
+    usageMetrics.protocol = protocolAddress;
 
     usageMetrics.activeUsers = 0;
     usageMetrics.totalUniqueUsers = 0;
@@ -64,14 +65,14 @@ export function getOrCreateUsageMetricSnapshot(event: ethereum.Event): UsageMetr
   return usageMetrics;
 }
 
-export function getOrCreateMarketDailySnapshot(event: ethereum.Event): MarketDailySnapshot {
+export function getOrCreateMarketDailySnapshot(event: ethereum.Event, protocolAddress: string): MarketDailySnapshot {
   let id: i64 = event.block.timestamp.toI64() / SECONDS_PER_DAY;
   let marketAddress = event.address.toHexString(); // TODO: might not be able to do this
   let marketMetrics = MarketDailySnapshot.load(marketAddress.concat("-").concat(id.toString()));
 
   if (!marketMetrics) {
     marketMetrics = new MarketDailySnapshot(marketAddress.concat("-").concat(id.toString()));
-    marketMetrics.protocol = COMPTROLLER_ADDRESS;
+    marketMetrics.protocol = protocolAddress;
     marketMetrics.market = marketAddress;
     marketMetrics.totalValueLockedUSD = BIGDECIMAL_ZERO;
     let inputBalances = new Array<BigInt>();
@@ -100,7 +101,7 @@ export function getOrCreateMarketDailySnapshot(event: ethereum.Event): MarketDai
   return marketMetrics;
 }
 
-export function getOrCreateFinancials(event: ethereum.Event): FinancialsDailySnapshot {
+export function getOrCreateFinancials(event: ethereum.Event, protocolAddress: string): FinancialsDailySnapshot {
   // Number of days since Unix epoch
   let id: i64 = event.block.timestamp.toI64() / SECONDS_PER_DAY;
 
@@ -108,7 +109,7 @@ export function getOrCreateFinancials(event: ethereum.Event): FinancialsDailySna
 
   if (!financialMetrics) {
     financialMetrics = new FinancialsDailySnapshot(id.toString());
-    financialMetrics.protocol = COMPTROLLER_ADDRESS;
+    financialMetrics.protocol = protocolAddress;
     financialMetrics.totalVolumeUSD = BIGDECIMAL_ZERO;
     financialMetrics.supplySideRevenueUSD = BIGDECIMAL_ZERO;
     financialMetrics.protocolSideRevenueUSD = BIGDECIMAL_ZERO;
@@ -125,11 +126,11 @@ export function getOrCreateFinancials(event: ethereum.Event): FinancialsDailySna
 ///// Lending Specific /////
 ////////////////////////////
 
-export function getOrCreateLendingProtcol(): LendingProtocol {
-  let protocol = LendingProtocol.load(COMPTROLLER_ADDRESS);
+export function getOrCreateLendingProtcol( protocolAddress: string): LendingProtocol {
+  let protocol = LendingProtocol.load(protocolAddress);
 
   if (!protocol) {
-    protocol = new LendingProtocol(COMPTROLLER_ADDRESS);
+    protocol = new LendingProtocol(protocolAddress);
     protocol.name = PROTOCOL_NAME;
     protocol.slug = PROTOCOL_SLUG;
     protocol.schemaVersion = SCHEMA_VERSION;
@@ -144,7 +145,7 @@ export function getOrCreateLendingProtcol(): LendingProtocol {
     protocol._marketIds = [];
 
     // get initial liquidation penalty
-    let troller = Comptroller.bind(Address.fromString(COMPTROLLER_ADDRESS));
+    let troller = Comptroller.bind(Address.fromString(protocolAddress));
     let tryLiquidationPenalty = troller.try_liquidationIncentiveMantissa();
     protocol._liquidationPenalty = tryLiquidationPenalty.reverted
       ? BIGDECIMAL_ZERO
@@ -155,7 +156,7 @@ export function getOrCreateLendingProtcol(): LendingProtocol {
   return protocol;
 }
 
-export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address): Market {
+export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address, protocolAddress: string): Market {
   let market = Market.load(marketAddress.toHexString());
 
   if (!market) {
@@ -163,7 +164,7 @@ export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address)
     let cTokenContract = CToken.bind(marketAddress);
     let underlyingAddress: string;
     let underlying = cTokenContract.try_underlying();
-    if (marketAddress.toHexString().toLowerCase() == CETH_ADDRESS) {
+    if (marketAddress.toHexString().toLowerCase() == PROTOCOL_DATA[protocolAddress].CETH_ADDRESS.toLowerCase()) {
       underlyingAddress = ETH_ADDRESS;
     } else if (underlying.reverted) {
       underlyingAddress = ZERO_ADDRESS;
@@ -172,7 +173,7 @@ export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address)
     }
 
     // add market id to protocol
-    let protocol = getOrCreateLendingProtcol();
+    let protocol = getOrCreateLendingProtcol(protocolAddress);
     let marketIds = protocol._marketIds;
     marketIds.push(marketAddress.toHexString());
     protocol._marketIds = marketIds;
@@ -186,12 +187,12 @@ export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address)
     if (event.block.number.toI32() > 9601359) {
       let rewardTokenDeposit = getOrCreateRewardToken(
         marketAddress.toHexString(),
-        Address.fromString(COMP_ADDRESS),
+        Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS),
         RewardTokenType.DEPOSIT,
       );
       let rewardTokenBorrow = getOrCreateRewardToken(
         marketAddress.toHexString(),
-        Address.fromString(COMP_ADDRESS),
+        Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS),
         RewardTokenType.BORROW,
       );
       let rewardTokenArr = new Array<string>();
@@ -224,11 +225,9 @@ export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address)
     market.createdBlockNumber = event.block.number;
 
     // lending-specific data
-    if (underlyingAddress == SAI_ADDRESS) {
-      market.name = "Dai Stablecoin v1.0 (DAI)";
-    } else {
-      market.name = inputToken.name;
-    }
+
+    market.name = inputToken.name;
+
     market.isActive = true; // event MarketListed() makes a market active
     market.canUseAsCollateral = false; // until Collateral is taken out
     market.canBorrowFrom = false; // until Borrowed from

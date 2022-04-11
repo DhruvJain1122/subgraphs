@@ -15,10 +15,10 @@ import { SECONDS_PER_DAY } from "./utils/constants";
 ///////////////////////////
 
 // updates a given FinancialDailySnapshot Entity
-export function updateFinancials(event: ethereum.Event): void {
+export function updateFinancials(event: ethereum.Event, protocolAddress: string): void {
   // number of days since unix epoch
-  let financialMetrics = getOrCreateFinancials(event);
-  let protocol = getOrCreateLendingProtcol();
+  let financialMetrics = getOrCreateFinancials(event,protocolAddress);
+  let protocol = getOrCreateLendingProtcol(protocolAddress);
 
   // update value/volume vars
   financialMetrics.totalValueLockedUSD = protocol.totalValueLockedUSD;
@@ -30,7 +30,7 @@ export function updateFinancials(event: ethereum.Event): void {
 
     // only add to revenues if the financialMetrics has not seen this block number
     for (let i = 0; i < protocol._marketIds.length; i++) {
-      let market = getOrCreateMarket(event, event.address);
+      let market = getOrCreateMarket(event, event.address,protocolAddress);
 
       financialMetrics.supplySideRevenueUSD = financialMetrics.supplySideRevenueUSD.plus(
         market._supplySideRevenueUSDPerBlock.times(blockDiff),
@@ -52,10 +52,10 @@ export function updateFinancials(event: ethereum.Event): void {
 }
 
 // update a given UsageMetricDailySnapshot
-export function updateUsageMetrics(event: ethereum.Event, from: Address): void {
+export function updateUsageMetrics(event: ethereum.Event, from: Address, protocolAddress: string): void {
   // Number of days since Unix epoch
   let id: i64 = event.block.timestamp.toI64() / SECONDS_PER_DAY;
-  let usageMetrics = getOrCreateUsageMetricSnapshot(event);
+  let usageMetrics = getOrCreateUsageMetricSnapshot(event,protocolAddress);
 
   // Update the block number and timestamp to that of the last transaction of that day
   usageMetrics.blockNumber = event.block.number;
@@ -64,7 +64,7 @@ export function updateUsageMetrics(event: ethereum.Event, from: Address): void {
 
   let accountId = from.toHexString();
   let account = _Account.load(accountId);
-  let protocol = getOrCreateLendingProtcol();
+  let protocol = getOrCreateLendingProtcol(protocolAddress);
   if (!account) {
     account = new _Account(accountId);
     account.save();
@@ -87,10 +87,10 @@ export function updateUsageMetrics(event: ethereum.Event, from: Address): void {
 }
 
 // update a given MarketDailySnapshot
-export function updateMarketMetrics(event: ethereum.Event): void {
+export function updateMarketMetrics(event: ethereum.Event, protocolAddress: string): void {
   // Number of days since Unix epoch
-  let marketMetrics = getOrCreateMarketDailySnapshot(event);
-  let market = getOrCreateMarket(event, event.address);
+  let marketMetrics = getOrCreateMarketDailySnapshot(event,protocolAddress);
+  let market = getOrCreateMarket(event, event.address,protocolAddress);
 
   // update to latest block/timestamp
   marketMetrics.blockNumber = event.block.number;
