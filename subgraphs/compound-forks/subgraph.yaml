@@ -93,7 +93,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/cream/mappings.ts
+      file: ./src/mappings/tokenMappings.ts
       entities:
         - Event
         - Market

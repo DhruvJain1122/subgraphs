@@ -448,10 +448,12 @@ export function updateRewards(event: ethereum.Event, market: Market, protocolAdd
       let protocol = getOrCreateLendingProtcol(protocolAddress);
       let oracleAddress = changetype<Address>(protocol._priceOracle);
       let oracle = PriceOracle2.bind(oracleAddress);
-      compPriceUSD = oracle
-        .assetPrices(Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS))
-        .toBigDecimal()
-        .div(exponentToBigDecimal(6)); // price returned with 6 decimals of precision per docs
+      const compPriceUSDCall = oracle.try_assetPrices(
+        Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS),
+      ); // price returned with 6 decimals of precision per docs
+      compPriceUSD = compPriceUSDCall.reverted
+        ? BIGDECIMAL_ZERO
+        : compPriceUSDCall.value.toBigDecimal().div(exponentToBigDecimal(6));
     }
 
     let compPerDayUSD = compPerDay.toBigDecimal().div(exponentToBigDecimal(rewardDecimals)).times(compPriceUSD);

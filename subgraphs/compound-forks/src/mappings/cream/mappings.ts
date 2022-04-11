@@ -1,4 +1,3 @@
-// map blockchain data to entities outlined in schema.graphql
 import {
   MarketListed,
   NewCollateralFactor,
@@ -15,63 +14,6 @@ import { exponentToBigDecimal } from "../../common/utils/utils";
 import { Address } from "@graphprotocol/graph-ts";
 import { BIGDECIMAL_ONE, CREAM_COMPTROLLER_ADDRESS, DEFAULT_DECIMALS } from "../../common/utils/constants";
 
-export function handleMint(event: Mint): void {
-  if (
-    createDeposit(
-      event,
-      event.params.mintAmount,
-      event.params.mintTokens,
-      event.params.minter,
-      CREAM_COMPTROLLER_ADDRESS,
-    )
-  ) {
-    updateUsageMetrics(event, event.params.minter, CREAM_COMPTROLLER_ADDRESS);
-    updateFinancials(event, CREAM_COMPTROLLER_ADDRESS);
-    updateMarketMetrics(event, CREAM_COMPTROLLER_ADDRESS);
-  }
-}
-
-export function handleRedeem(event: Redeem): void {
-  if (createWithdraw(event, event.params.redeemer, event.params.redeemAmount, CREAM_COMPTROLLER_ADDRESS)) {
-    updateUsageMetrics(event, event.params.redeemer, CREAM_COMPTROLLER_ADDRESS);
-    updateFinancials(event, CREAM_COMPTROLLER_ADDRESS);
-    updateMarketMetrics(event, CREAM_COMPTROLLER_ADDRESS);
-  }
-}
-
-export function handleBorrow(event: Borrow): void {
-  if (createBorrow(event, event.params.borrower, event.params.borrowAmount, CREAM_COMPTROLLER_ADDRESS)) {
-    updateUsageMetrics(event, event.params.borrower, CREAM_COMPTROLLER_ADDRESS);
-    updateFinancials(event, CREAM_COMPTROLLER_ADDRESS);
-    updateMarketMetrics(event, CREAM_COMPTROLLER_ADDRESS);
-  }
-}
-
-export function handleRepayBorrow(event: RepayBorrow): void {
-  if (createRepay(event, event.params.payer, event.params.repayAmount, CREAM_COMPTROLLER_ADDRESS)) {
-    updateUsageMetrics(event, event.params.payer, CREAM_COMPTROLLER_ADDRESS);
-    updateFinancials(event, CREAM_COMPTROLLER_ADDRESS);
-    updateMarketMetrics(event, CREAM_COMPTROLLER_ADDRESS);
-  }
-}
-
-export function handleLiquidateBorrow(event: LiquidateBorrow): void {
-  if (
-    createLiquidation(
-      event,
-      event.params.cTokenCollateral,
-      event.params.liquidator,
-      event.params.seizeTokens,
-      event.params.repayAmount,
-      CREAM_COMPTROLLER_ADDRESS,
-    )
-  ) {
-    updateUsageMetrics(event, event.params.liquidator, CREAM_COMPTROLLER_ADDRESS);
-    updateFinancials(event, CREAM_COMPTROLLER_ADDRESS);
-    updateMarketMetrics(event, CREAM_COMPTROLLER_ADDRESS);
-  }
-}
-
 export function handleMarketListed(event: MarketListed): void {
   // create new market now that the data source is instantiated
   CToken.create(event.params.cToken);
@@ -84,20 +26,6 @@ export function handleNewPriceOracle(event: NewPriceOracle): void {
 
   lendingProtocol._priceOracle = event.params.newPriceOracle;
   lendingProtocol.save();
-}
-
-export function handleNewReserveFactor(event: NewReserveFactor): void {
-  let market = getOrCreateMarket(event, event.address, CREAM_COMPTROLLER_ADDRESS);
-
-  // update financials in case the reserve is updated and no other compound transactions happen in that block
-  // intended for capturing accurate revenues
-  updateFinancials(event, CREAM_COMPTROLLER_ADDRESS);
-
-  // get reserve factor
-  market._reserveFactor = event.params.newReserveFactorMantissa
-    .toBigDecimal()
-    .div(exponentToBigDecimal(DEFAULT_DECIMALS));
-  market.save();
 }
 
 export function handleNewCollateralFactor(event: NewCollateralFactor): void {
