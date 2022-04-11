@@ -7,14 +7,11 @@ import {
   RewardToken,
   Token,
   UsageMetricsDailySnapshot,
-} from "../types/schema";
+} from "../../generated/schema";
 import {
   BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
   BIGINT_ZERO,
-  CETH_ADDRESS,
-  COMPTROLLER_ADDRESS,
-  COMP_ADDRESS,
   DEFAULT_DECIMALS,
   ETH_ADDRESS,
   ETH_NAME,
@@ -22,28 +19,28 @@ import {
   LENDING_TYPE,
   NETWORK_ETHEREUM,
   PROTOCOL_DATA,
-  PROTOCOL_NAME,
   PROTOCOL_RISK_TYPE,
-  PROTOCOL_SLUG,
   PROTOCOL_TYPE,
   RewardTokenType,
-  SAI_ADDRESS,
   SCHEMA_VERSION,
   SECONDS_PER_DAY,
   SUBGRAPH_VERSION,
   ZERO_ADDRESS,
 } from "./utils/constants";
 import { getAssetDecimals, getAssetName, getAssetSymbol } from "./utils/tokens";
-import { CToken } from "../types/Comptroller/cToken";
+import { CToken } from "../../generated/Comptroller/cToken";
 import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { exponentToBigDecimal } from "./utils/utils";
-import { Comptroller } from "../types/Comptroller/Comptroller";
+import { Comptroller } from "../../generated/Comptroller/Comptroller";
 
 ///////////////////
 //// Snapshots ////
 ///////////////////
 
-export function getOrCreateUsageMetricSnapshot(event: ethereum.Event, protocolAddress: string): UsageMetricsDailySnapshot {
+export function getOrCreateUsageMetricSnapshot(
+  event: ethereum.Event,
+  protocolAddress: string,
+): UsageMetricsDailySnapshot {
   // Number of days since Unix epoch
   let id: i64 = event.block.timestamp.toI64() / SECONDS_PER_DAY;
 
@@ -126,13 +123,13 @@ export function getOrCreateFinancials(event: ethereum.Event, protocolAddress: st
 ///// Lending Specific /////
 ////////////////////////////
 
-export function getOrCreateLendingProtcol( protocolAddress: string): LendingProtocol {
+export function getOrCreateLendingProtcol(protocolAddress: string): LendingProtocol {
   let protocol = LendingProtocol.load(protocolAddress);
 
   if (!protocol) {
     protocol = new LendingProtocol(protocolAddress);
-    protocol.name = PROTOCOL_NAME;
-    protocol.slug = PROTOCOL_SLUG;
+    protocol.name = PROTOCOL_DATA.get(protocolAddress).NAME;
+    protocol.slug = PROTOCOL_DATA.get(protocolAddress).SLUG;
     protocol.schemaVersion = SCHEMA_VERSION;
     protocol.subgraphVersion = SUBGRAPH_VERSION;
     protocol.network = NETWORK_ETHEREUM;
@@ -164,7 +161,7 @@ export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address,
     let cTokenContract = CToken.bind(marketAddress);
     let underlyingAddress: string;
     let underlying = cTokenContract.try_underlying();
-    if (marketAddress.toHexString().toLowerCase() == PROTOCOL_DATA[protocolAddress].CETH_ADDRESS.toLowerCase()) {
+    if (marketAddress.toHexString().toLowerCase() == PROTOCOL_DATA.get(protocolAddress).CETH_ADDRESS.toLowerCase()) {
       underlyingAddress = ETH_ADDRESS;
     } else if (underlying.reverted) {
       underlyingAddress = ZERO_ADDRESS;
@@ -187,12 +184,12 @@ export function getOrCreateMarket(event: ethereum.Event, marketAddress: Address,
     if (event.block.number.toI32() > 9601359) {
       let rewardTokenDeposit = getOrCreateRewardToken(
         marketAddress.toHexString(),
-        Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS),
+        Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS),
         RewardTokenType.DEPOSIT,
       );
       let rewardTokenBorrow = getOrCreateRewardToken(
         marketAddress.toHexString(),
-        Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS),
+        Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS),
         RewardTokenType.BORROW,
       );
       let rewardTokenArr = new Array<string>();

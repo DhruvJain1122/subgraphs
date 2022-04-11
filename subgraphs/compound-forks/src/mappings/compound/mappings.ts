@@ -4,11 +4,11 @@ import {
   NewCollateralFactor,
   NewLiquidationIncentive,
   NewPriceOracle,
-} from "../../types/Comptroller/Comptroller";
+} from "../../../generated/Comptroller/Comptroller";
 import { createBorrow, createDeposit, createLiquidation, createRepay, createWithdraw } from "../helpers";
-import { Mint, Redeem, Borrow, RepayBorrow, LiquidateBorrow } from "../../types/templates/cToken/CToken";
-import { CToken } from "../../types/templates";
-import { NewReserveFactor } from "../../types/Comptroller/cToken";
+import { Mint, Redeem, Borrow, RepayBorrow, LiquidateBorrow } from "../../../generated/templates/cToken/CToken";
+import { CToken } from "../../../generated/templates";
+import { NewReserveFactor } from "../../../generated/Comptroller/cToken";
 import { updateFinancials, updateMarketMetrics, updateUsageMetrics } from "../../common/metrics";
 import { getOrCreateLendingProtcol, getOrCreateMarket } from "../../common/getters";
 import { exponentToBigDecimal } from "../../common/utils/utils";
@@ -16,7 +16,9 @@ import { Address } from "@graphprotocol/graph-ts";
 import { BIGDECIMAL_ONE, COMPTROLLER_ADDRESS, DEFAULT_DECIMALS } from "../../common/utils/constants";
 
 export function handleMint(event: Mint): void {
-  if (createDeposit(event, event.params.mintAmount, event.params.mintTokens, event.params.minter, COMPTROLLER_ADDRESS)) {
+  if (
+    createDeposit(event, event.params.mintAmount, event.params.mintTokens, event.params.minter, COMPTROLLER_ADDRESS)
+  ) {
     updateUsageMetrics(event, event.params.minter, COMPTROLLER_ADDRESS);
     updateFinancials(event, COMPTROLLER_ADDRESS);
     updateMarketMetrics(event, COMPTROLLER_ADDRESS);
@@ -55,7 +57,7 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
       event.params.liquidator,
       event.params.seizeTokens,
       event.params.repayAmount,
-      COMPTROLLER_ADDRESS
+      COMPTROLLER_ADDRESS,
     )
   ) {
     updateUsageMetrics(event, event.params.liquidator, COMPTROLLER_ADDRESS);
@@ -67,7 +69,7 @@ export function handleLiquidateBorrow(event: LiquidateBorrow): void {
 export function handleMarketListed(event: MarketListed): void {
   // create new market now that the data source is instantiated
   CToken.create(event.params.cToken);
-  getOrCreateMarket(event, event.params.cToken,COMPTROLLER_ADDRESS);
+  getOrCreateMarket(event, event.params.cToken, COMPTROLLER_ADDRESS);
 }
 
 export function handleNewPriceOracle(event: NewPriceOracle): void {
@@ -79,7 +81,7 @@ export function handleNewPriceOracle(event: NewPriceOracle): void {
 }
 
 export function handleNewReserveFactor(event: NewReserveFactor): void {
-  let market = getOrCreateMarket(event, event.address,COMPTROLLER_ADDRESS);
+  let market = getOrCreateMarket(event, event.address, COMPTROLLER_ADDRESS);
 
   // update financials in case the reserve is updated and no other compound transactions happen in that block
   // intended for capturing accurate revenues
@@ -113,7 +115,7 @@ export function handleNewLiquidationIncentive(event: NewLiquidationIncentive): v
 
   // set liquidation penalty for each market
   for (let i = 0; i < protocol._marketIds.length; i++) {
-    let market = getOrCreateMarket(event, Address.fromString(protocol._marketIds[i]),COMPTROLLER_ADDRESS);
+    let market = getOrCreateMarket(event, Address.fromString(protocol._marketIds[i]), COMPTROLLER_ADDRESS);
     market.liquidationPenalty = liquidationPenalty;
     market.save();
   }

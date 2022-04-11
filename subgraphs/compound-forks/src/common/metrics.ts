@@ -7,7 +7,7 @@ import {
   getOrCreateUsageMetricSnapshot,
 } from "./getters";
 import { Address, ethereum } from "@graphprotocol/graph-ts";
-import { _Account, _DailyActiveAccount } from "../types/schema";
+import { _Account, _DailyActiveAccount } from "../../generated/schema";
 import { SECONDS_PER_DAY } from "./utils/constants";
 
 ///////////////////////////
@@ -17,7 +17,7 @@ import { SECONDS_PER_DAY } from "./utils/constants";
 // updates a given FinancialDailySnapshot Entity
 export function updateFinancials(event: ethereum.Event, protocolAddress: string): void {
   // number of days since unix epoch
-  let financialMetrics = getOrCreateFinancials(event,protocolAddress);
+  let financialMetrics = getOrCreateFinancials(event, protocolAddress);
   let protocol = getOrCreateLendingProtcol(protocolAddress);
 
   // update value/volume vars
@@ -30,7 +30,7 @@ export function updateFinancials(event: ethereum.Event, protocolAddress: string)
 
     // only add to revenues if the financialMetrics has not seen this block number
     for (let i = 0; i < protocol._marketIds.length; i++) {
-      let market = getOrCreateMarket(event, event.address,protocolAddress);
+      let market = getOrCreateMarket(event, event.address, protocolAddress);
 
       financialMetrics.supplySideRevenueUSD = financialMetrics.supplySideRevenueUSD.plus(
         market._supplySideRevenueUSDPerBlock.times(blockDiff),
@@ -55,7 +55,7 @@ export function updateFinancials(event: ethereum.Event, protocolAddress: string)
 export function updateUsageMetrics(event: ethereum.Event, from: Address, protocolAddress: string): void {
   // Number of days since Unix epoch
   let id: i64 = event.block.timestamp.toI64() / SECONDS_PER_DAY;
-  let usageMetrics = getOrCreateUsageMetricSnapshot(event,protocolAddress);
+  let usageMetrics = getOrCreateUsageMetricSnapshot(event, protocolAddress);
 
   // Update the block number and timestamp to that of the last transaction of that day
   usageMetrics.blockNumber = event.block.number;
@@ -89,8 +89,8 @@ export function updateUsageMetrics(event: ethereum.Event, from: Address, protoco
 // update a given MarketDailySnapshot
 export function updateMarketMetrics(event: ethereum.Event, protocolAddress: string): void {
   // Number of days since Unix epoch
-  let marketMetrics = getOrCreateMarketDailySnapshot(event,protocolAddress);
-  let market = getOrCreateMarket(event, event.address,protocolAddress);
+  let marketMetrics = getOrCreateMarketDailySnapshot(event, protocolAddress);
+  let market = getOrCreateMarket(event, event.address, protocolAddress);
 
   // update to latest block/timestamp
   marketMetrics.blockNumber = event.block.number;

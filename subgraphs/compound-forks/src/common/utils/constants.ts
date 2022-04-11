@@ -67,37 +67,84 @@ export const CCOMP_ADDRESS = "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4";
 export const CUSDT_ADDRESS = "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9";
 export const CTUSD_ADDRESS = "0x12392f67bdf24fae0af363c24ac620a2f67dad86";
 
+export const CREAM_COMPTROLLER_ADDRESS = "0x3d5BC3c8d13dcB8bF317092d84783c2697AE9258";
+export const CRETH_ADDRESS = "0xD06527D5e56A3495252A528C4987003b712860eE";
 
-export const CREAM_COMPTROLLER_ADDRESS = "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b";
-interface ProtocolDataInterface{
-  [key:string]:{
-    COMP_ADDRESS: string;
-    CCOMP_ADDRESS: string;
-    CUSDT_ADDRESS: string;
-    CETH_ADDRESS: string;
-    COMP_BLOCK: number;
-    CCOMP_BLOCK: number;
+export const IRONBANK_COMPTROLLER_ADDRESS = "0xab1c342c7bf5ec5f02adea1c2270670bca144cbb";
+
+class ComptrollerData {
+  COMP_ADDRESS: string;
+  CCOMP_ADDRESS: string;
+  CUSDT_ADDRESS: string;
+  CETH_ADDRESS: string;
+  COMP_BLOCK: number;
+  CCOMP_BLOCK: number;
+  NAME: string;
+  SLUG: string;
+  DECIMALS: number;
+  constructor(
+    COMP_ADDRESS: string,
+    CCOMP_ADDRESS: string,
+    CUSDT_ADDRESS: string,
+    CETH_ADDRESS: string,
+    COMP_BLOCK: number,
+    CCOMP_BLOCK: number,
+    NAME: string,
+    SLUG: string,
+    DECIMALS: number,
+  ) {
+    this.COMP_ADDRESS = COMP_ADDRESS;
+    this.CCOMP_ADDRESS = CCOMP_ADDRESS;
+    this.CUSDT_ADDRESS = CUSDT_ADDRESS;
+    this.CETH_ADDRESS = CETH_ADDRESS;
+    this.COMP_BLOCK = COMP_BLOCK;
+    this.CCOMP_BLOCK = CCOMP_BLOCK;
+    this.NAME = NAME;
+    this.SLUG = SLUG;
+    this.DECIMALS = DECIMALS;
   }
 }
-export const PROTOCOL_DATA : ProtocolDataInterface = {
-  "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b":{
-      COMP_ADDRESS : "0xc00e94cb662c3520282e6f5717214004a7f26888",
-      CCOMP_ADDRESS : "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4",
-      CUSDT_ADDRESS : "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
-      CETH_ADDRESS : "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
-      COMP_BLOCK: 0,
-      CCOMP_BLOCK: 0
-  },
-  "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b3":{
-    COMP_ADDRESS : "0xc00e94cb662c3520282e6f5717214004a7f26888",
-    CCOMP_ADDRESS : "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4",
-    CUSDT_ADDRESS : "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
-    CETH_ADDRESS : "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
-    COMP_BLOCK: 0,
-    CCOMP_BLOCK: 0
-}
-}
 
+const CompoundProtocolData = new ComptrollerData(
+  "0xc00e94cb662c3520282e6f5717214004a7f26888",
+  "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4",
+  "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
+  "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
+  9601359,
+  10960099,
+  "Compound v2",
+  "Compound-v2",
+  8,
+);
+const CreamProtocolData = new ComptrollerData(
+  "0x2ba592F78dB6436527729929AAf6c908497cB200",
+  "0x892B14321a4FCba80669aE30Bd0cd99a7ECF6aC0",
+  "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
+  "0xD06527D5e56A3495252A528C4987003b712860eE",
+  10594024,
+  10638857,
+  "Cream",
+  "Cream",
+  8,
+);
+const IronBankProtocolData = new ComptrollerData(
+  "0xab1c342c7bf5ec5f02adea1c2270670bca144cbb",
+  "0x892B14321a4FCba80669aE30Bd0cd99a7ECF6aC0",
+  "0x797AAB1ce7c01eB727ab980762bA88e7133d2157",
+  "0x41c84c0e2ee0b740cf0d31f63f3b6f627dc6b393",
+  10594024,
+  10638857,
+  "IronBank",
+  "IronBank",
+  8,
+);
+
+export const PROTOCOL_DATA = new Map<string, ComptrollerData>()
+  .set(COMPTROLLER_ADDRESS, CompoundProtocolData)
+  .set(CREAM_COMPTROLLER_ADDRESS, CreamProtocolData)
+  .set(IRONBANK_COMPTROLLER_ADDRESS, IronBankProtocolData);
+
+// PROTOCOL_DATA
 ////////////////////////
 ///// Type Helpers /////
 ////////////////////////
@@ -143,8 +190,6 @@ export const NETWORK_ETHEREUM = Network.ETHEREUM;
 export const PROTOCOL_TYPE = ProtocolType.LENDING;
 export const LENDING_TYPE = LendingType.POOLED;
 export const PROTOCOL_RISK_TYPE = RiskType.ISOLATED;
-export const PROTOCOL_NAME = "Compound v2";
-export const PROTOCOL_SLUG = "compound-v2";
 export const SUBGRAPH_VERSION = "1.4.10";
 export const SCHEMA_VERSION = "1.0.1";
 export const COMPOUND_DECIMALS = 8;

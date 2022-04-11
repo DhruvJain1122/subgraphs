@@ -17,13 +17,13 @@ import {
   getOrCreateRewardToken,
   getOrCreateToken,
 } from "../common/getters";
-import { Market, Deposit, Withdraw, Borrow, Repay, Liquidation, RewardToken } from "../types/schema";
+import { Market, Deposit, Withdraw, Borrow, Repay, Liquidation, RewardToken } from "../../generated/schema";
 import { Address, BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { CToken } from "../types/Comptroller/cToken";
+import { CToken } from "../../generated/Comptroller/cToken";
 import { getUSDPriceOfToken } from "../common/prices/prices";
 import { exponentToBigDecimal, getExchangeRate } from "../common/utils/utils";
-import { Comptroller } from "../types/Comptroller/Comptroller";
-import { PriceOracle2 } from "../types/Comptroller/PriceOracle2";
+import { Comptroller } from "../../generated/Comptroller/Comptroller";
+import { PriceOracle2 } from "../../generated/Comptroller/PriceOracle2";
 
 //////////////////////////////
 //// Transaction Entities ////
@@ -31,7 +31,13 @@ import { PriceOracle2 } from "../types/Comptroller/PriceOracle2";
 
 // create a Deposit entity, return false if transaction is null
 // null = market does not exist
-export function createDeposit(event: ethereum.Event, amount: BigInt, mintTokens: BigInt, sender: Address, protocolAddress: string): bool {
+export function createDeposit(
+  event: ethereum.Event,
+  amount: BigInt,
+  mintTokens: BigInt,
+  sender: Address,
+  protocolAddress: string,
+): bool {
   let marketAddress = event.address;
   let market = getOrCreateMarket(event, marketAddress, protocolAddress);
 
@@ -83,7 +89,12 @@ export function createDeposit(event: ethereum.Event, amount: BigInt, mintTokens:
 }
 
 // creates a withdraw entity, returns false if market does not exist
-export function createWithdraw(event: ethereum.Event, redeemer: Address, amount: BigInt, protocolAddress: string): bool {
+export function createWithdraw(
+  event: ethereum.Event,
+  redeemer: Address,
+  amount: BigInt,
+  protocolAddress: string,
+): bool {
   // grab and store market entity
   let marketAddress = event.address;
   let market = getOrCreateMarket(event, marketAddress, protocolAddress);
@@ -232,7 +243,7 @@ export function createLiquidation(
   liquidator: Address,
   liquidatedAmount: BigInt, // sieze tokens
   repaidAmount: BigInt,
-  protocolAddress: string
+  protocolAddress: string,
 ): bool {
   // grab and store market
   let marketAddress = event.address;
@@ -353,7 +364,7 @@ export function updateMarketPrices(market: Market, event: ethereum.Event, protoc
   market._exchangeRate = exchangeRate
     .toBigDecimal()
     .div(exponentToBigDecimal(underlyingDecimals))
-    .times(exponentToBigDecimal(COMPOUND_DECIMALS))
+    .times(exponentToBigDecimal(i32(PROTOCOL_DATA.get(protocolAddress).DECIMALS)))
     .div(mantissaFactorBD)
     .truncate(DEFAULT_DECIMALS);
   market._inputTokenPrice = getUSDPriceOfToken(market, event.block.number.toI32(), protocolAddress);
@@ -382,13 +393,21 @@ export function updateProtocolTVL(event: ethereum.Event, protocolAddress: string
 
 export function updateRewards(event: ethereum.Event, market: Market, protocolAddress: string): void {
   // COMP was not created until block 9601359
-  if (event.block.number.toI32() > PROTOCOL_DATA[protocolAddress].COMP_BLOCK) {
+  if (event.block.number.toI32() > PROTOCOL_DATA.get(protocolAddress).COMP_BLOCK) {
     let rewardTokenBorrow: RewardToken | null = null;
     let rewardTokenDeposit: RewardToken | null = null;
     // check if market has COMP reward tokens
     if (market.rewardTokens == null) {
-      rewardTokenDeposit = getOrCreateRewardToken(market.id, Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS), RewardTokenType.DEPOSIT);
-      rewardTokenBorrow = getOrCreateRewardToken(market.id, Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS), RewardTokenType.BORROW);
+      rewardTokenDeposit = getOrCreateRewardToken(
+        market.id,
+        Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS),
+        RewardTokenType.DEPOSIT,
+      );
+      rewardTokenBorrow = getOrCreateRewardToken(
+        market.id,
+        Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS),
+        RewardTokenType.BORROW,
+      );
       let rewardTokenArr = new Array<string>();
       rewardTokenArr.push(rewardTokenDeposit.id);
       rewardTokenArr.push(rewardTokenBorrow.id);
@@ -397,7 +416,11 @@ export function updateRewards(event: ethereum.Event, market: Market, protocolAdd
 
     // get COMP distribution/block
     if (rewardTokenBorrow == null) {
-      rewardTokenBorrow = getOrCreateRewardToken(market.id, Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS), RewardTokenType.BORROW);
+      rewardTokenBorrow = getOrCreateRewardToken(
+        market.id,
+        Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS),
+        RewardTokenType.BORROW,
+      );
     }
     let rewardDecimals = rewardTokenBorrow.decimals;
     let troller = Comptroller.bind(Address.fromString(protocolAddress));
@@ -413,15 +436,22 @@ export function updateRewards(event: ethereum.Event, market: Market, protocolAdd
     let compPriceUSD = BIGDECIMAL_ZERO;
 
     // cCOMP was made at this block height 10960099
-    if (event.block.number.toI32() > PROTOCOL_DATA[protocolAddress].CCOMP_BLOCK) {
-      let compMarket = getOrCreateMarket(event, Address.fromString(PROTOCOL_DATA[protocolAddress].CCOMP_ADDRESS), protocolAddress);
+    if (event.block.number.toI32() > PROTOCOL_DATA.get(protocolAddress).CCOMP_BLOCK) {
+      let compMarket = getOrCreateMarket(
+        event,
+        Address.fromString(PROTOCOL_DATA.get(protocolAddress).CCOMP_ADDRESS),
+        protocolAddress,
+      );
       compPriceUSD = getUSDPriceOfToken(compMarket, event.block.number.toI32(), protocolAddress);
     } else {
       // try to get COMP price using assetPrices() and prices[] mapping in SimplePriceOracle.sol
       let protocol = getOrCreateLendingProtcol(protocolAddress);
       let oracleAddress = changetype<Address>(protocol._priceOracle);
       let oracle = PriceOracle2.bind(oracleAddress);
-      compPriceUSD = oracle.assetPrices(Address.fromString(PROTOCOL_DATA[protocolAddress].COMP_ADDRESS)).toBigDecimal().div(exponentToBigDecimal(6)); // price returned with 6 decimals of precision per docs
+      compPriceUSD = oracle
+        .assetPrices(Address.fromString(PROTOCOL_DATA.get(protocolAddress).COMP_ADDRESS))
+        .toBigDecimal()
+        .div(exponentToBigDecimal(6)); // price returned with 6 decimals of precision per docs
     }
 
     let compPerDayUSD = compPerDay.toBigDecimal().div(exponentToBigDecimal(rewardDecimals)).times(compPriceUSD);
