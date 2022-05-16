@@ -12,11 +12,9 @@ import {
   Vault as VaultStore,
   Deposit as DepositTransaction,
   Withdraw as WithdrawTransaction,
-  _Account,
-  _DailyActiveAccount,
-  YieldAggregator,
 } from "../../generated/schema";
 import {
+  BIGDECIMAL_ONE,
   BIGDECIMAL_ZERO,
   BIGINT_TEN,
   BIGINT_ZERO,
@@ -25,10 +23,11 @@ import {
 } from "../common/constants";
 import { getTimestampInMillis } from "../common/utils";
 import { getOrCreateToken } from "../common/tokens";
-import { normalizedUsdcPrice, usdcPrice } from "../price/usdcOracle";
-import { getOrCreateFinancialMetrics } from "../common/financial";
+import { getOrCreateFinancialMetrics, updateFinancials } from "../common/financial";
 import { updateUsageMetrics } from "../common/usage";
-import { getOrCreateVault } from "../common/vaults";
+import { getOrCreateVault, updateVaultSnapshots } from "../common/vaults";
+import { getUsdPrice } from "../prices";
+import { getOrCreateProtocol } from "../common/protocol";
 
 export function handleDeposit(call: DepositCall): void {
   log.info("[Vault mappings] Handle deposit with amount {}, vault {}", [
@@ -43,8 +42,10 @@ export function handleDeposit(call: DepositCall): void {
     let sharesMinted = depositAmount;
     deposit(call, vault, depositAmount, sharesMinted);
   }
-  updateFinancials(call.block.number, call.block.timestamp, call.from);
-  updateUsageMetrics(call.block.number, call.block.timestamp, call.from);
+  updateFinancials(call.block.number, call.block.timestamp);
+  updateUsageMetrics(call.block, call.from);
+  updateVaultSnapshots(vaultAddress,call.block)
+
 }
 
 export function handleDepositWithRecipient(call: DepositForCall): void {
@@ -59,25 +60,32 @@ export function handleDepositWithRecipient(call: DepositForCall): void {
     let sharesMinted = depositAmount;
     deposit(call, vault, depositAmount, sharesMinted);
   }
-  updateFinancials(call.block.number, call.block.timestamp, call.from);
-  updateUsageMetrics(call.block.number, call.block.timestamp, call.from);
+  updateFinancials(call.block.number, call.block.timestamp);
+  updateUsageMetrics(call.block, call.from);
+  updateVaultSnapshots(vaultAddress,call.block)
 }
 
 function deposit(call: ethereum.Call, vault: VaultStore, depositAmount: BigInt, sharesMinted: BigInt): void {
   if (call.transaction.value > BIGINT_ZERO && WETH_VAULT.toLowerCase() === vault.id.toLowerCase()) {
     depositAmount = call.transaction.value;
   }
-  const token = getOrCreateToken(Address.fromString(vault.inputTokens[0]));
-  const amountUSD = normalizedUsdcPrice(usdcPrice(token, depositAmount));
-  vault.totalVolumeUSD = vault.totalVolumeUSD.plus(amountUSD);
-  const tvl = vault.inputTokenBalances[0].plus(depositAmount);
-  vault.totalValueLockedUSD = normalizedUsdcPrice(usdcPrice(token, tvl));
+  const token = getOrCreateToken(Address.fromString(vault.inputToken));
+  const protocol = getOrCreateProtocol();
 
-  vault.inputTokenBalances = [vault.inputTokenBalances[0].plus(depositAmount)];
+  const decimals = BIGINT_TEN.pow(u8(token.decimals))
+  const amountUSD = getUsdPrice(Address.fromString(token.id), new BigDecimal(depositAmount.div(decimals)));
+
+  const tvl = vault.inputTokenBalance.plus(depositAmount);
+  vault.totalValueLockedUSD = getUsdPrice(Address.fromString(token.id), new BigDecimal(tvl.div(decimals)));
+
+  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
+
+  vault.inputTokenBalance= vault.inputTokenBalance.plus(depositAmount);
   vault.outputTokenSupply = vault.outputTokenSupply.plus(sharesMinted);
 
-  vault.outputTokenPriceUSD = normalizedUsdcPrice(usdcPrice(token, BIGINT_TEN.pow(u8(token.decimals))));
+  vault.outputTokenPriceUSD =  getUsdPrice(Address.fromString(token.id), BIGDECIMAL_ONE);
 
+  vault.pricePerShare = new BigDecimal(decimals)
   vault.save();
 
   getOrCreateDepositTransactionFromCall(call, depositAmount, amountUSD, "vault.deposit()");
@@ -92,8 +100,10 @@ export function handleWithdraw(call: WithdrawCall): void {
     const withdrawAmount = requestedAmount;
     withdraw(call, vault, withdrawAmount, requestedAmount);
   }
-  updateFinancials(call.block.number, call.block.timestamp, call.from);
-  updateUsageMetrics(call.block.number, call.block.timestamp, call.from);
+  updateFinancials(call.block.number, call.block.timestamp);
+  updateUsageMetrics(call.block, call.from);
+  updateVaultSnapshots(vaultAddress,call.block)
+
 }
 
 export function handleWithdrawEthPool(call: Withdraw1Call): void {
@@ -105,25 +115,38 @@ export function handleWithdrawEthPool(call: Withdraw1Call): void {
     const withdrawAmount = requestedAmount;
     withdraw(call, vault, withdrawAmount, requestedAmount);
   }
-  updateFinancials(call.block.number, call.block.timestamp, call.from);
-  updateUsageMetrics(call.block.number, call.block.timestamp, call.from);
+  updateFinancials(call.block.number, call.block.timestamp);
+  updateUsageMetrics(call.block, call.from);
+  updateVaultSnapshots(vaultAddress,call.block)
+
 }
 
 export function handleWithdrawRequest(event: WithdrawalRequested): void {
   log.info("[Vault mappings] Handle withdraw request with shares. TX hash: {}", [event.transaction.hash.toHexString()]);
 
-  updateUsageMetrics(event.block.number, event.block.timestamp, event.params.requestor);
+  updateUsageMetrics(event.block, event.params.requestor);
 }
 function withdraw(call: ethereum.Call, vault: VaultStore, withdrawAmount: BigInt, sharesBurnt: BigInt): void {
-  const token = getOrCreateToken(Address.fromString(vault.inputTokens[0]));
-  let amountUSD = normalizedUsdcPrice(usdcPrice(token, withdrawAmount));
-  const tvl = vault.inputTokenBalances[0].minus(withdrawAmount);
-  vault.totalValueLockedUSD = normalizedUsdcPrice(usdcPrice(token, tvl));
+
+
+  const token = getOrCreateToken(Address.fromString(vault.inputToken));
+  const protocol = getOrCreateProtocol();
+
+  const decimals = BIGINT_TEN.pow(u8(token.decimals))
+  const amountUSD = getUsdPrice(Address.fromString(token.id), new BigDecimal(withdrawAmount.div(decimals)));
+
+  const tvl = vault.inputTokenBalance.minus(withdrawAmount);
+  vault.totalValueLockedUSD = getUsdPrice(Address.fromString(token.id), new BigDecimal(tvl.div(decimals)));
+
+  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(amountUSD);
+
   vault.outputTokenSupply = vault.outputTokenSupply.minus(sharesBurnt);
 
-  vault.outputTokenPriceUSD = normalizedUsdcPrice(usdcPrice(token, BIGINT_TEN.pow(u8(token.decimals))));
+  vault.outputTokenPriceUSD =  getUsdPrice(Address.fromString(token.id), BIGDECIMAL_ONE);
+  vault.inputTokenBalance= tvl;
 
-  vault.inputTokenBalances = [tvl];
+  vault.pricePerShare = new BigDecimal(decimals)
+
   vault.save();
 
   getOrCreateWithdrawTransactionFromCall(call, withdrawAmount, amountUSD, "vault.withdraw()");
@@ -157,7 +180,7 @@ export function getOrCreateDepositTransactionFromCall(
 
     const vault = getOrCreateVault(call.to, call.block.number,call.block.timestamp)
     if (vault) {
-      transaction.asset = vault.inputTokens[0];
+      transaction.asset = vault.inputToken;
     }
     transaction.amount = amount;
     transaction.amountUSD = amountUSD;
@@ -194,7 +217,7 @@ export function getOrCreateWithdrawTransactionFromCall(
 
     const vault = getOrCreateVault(call.to, call.block.number,call.block.timestamp)
     if (vault) {
-      transaction.asset = vault.inputTokens[0];
+      transaction.asset = vault.inputToken;
     }
     transaction.amount = amount;
     transaction.amountUSD = amountUSD;
@@ -203,33 +226,3 @@ export function getOrCreateWithdrawTransactionFromCall(
   return transaction;
 }
 
-function updateFinancials(blockNumber: BigInt, timestamp: BigInt, from: Address): void {
-  let financialMetrics = getOrCreateFinancialMetrics(timestamp);
-
-  let protocolTvlUsd = BIGDECIMAL_ZERO;
-  let protocolVolumeUsd = BIGDECIMAL_ZERO;
-  const protocol = YieldAggregator.load(PROTOCOL_ID);
-  if (protocol) {
-    for (let i = 0; i < protocol.vaultIds.length; i++) {
-      const vaultId = protocol.vaultIds[i];
-
-      let vault = getOrCreateVault(Address.fromString(vaultId), blockNumber,timestamp)
-      if (vault) {
-        const vaultTvlUsd = vault.totalValueLockedUSD;
-        const vaultVolumeUsd = vault.totalVolumeUSD;
-        protocolTvlUsd = protocolTvlUsd.plus(vaultTvlUsd);
-        protocolVolumeUsd = protocolVolumeUsd.plus(vaultVolumeUsd);
-      }
-    }
-    protocol.totalValueLockedUSD = protocolTvlUsd;
-    protocol.save();
-    financialMetrics.totalValueLockedUSD = protocolTvlUsd;
-    financialMetrics.totalVolumeUSD = protocolVolumeUsd;
-  }
-
-  // Update the block number and timestamp to that of the last transaction of that day
-  financialMetrics.blockNumber = blockNumber;
-  financialMetrics.timestamp = timestamp;
-
-  financialMetrics.save();
-}

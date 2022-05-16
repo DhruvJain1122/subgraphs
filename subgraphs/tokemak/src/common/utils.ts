@@ -12,3 +12,10 @@ export function getTimestampInMillis(block: ethereum.Block): BigInt {
 export function bigIntToPercentage(n: BigInt): BigDecimal {
   return n.toBigDecimal().div(BIGDECIMAL_HUNDRED);
 }
+
+export function readValue<T>(
+  callResult: ethereum.CallResult<T>,
+  defaultValue: T
+): T {
+  return callResult.reverted ? defaultValue : callResult.value;
+}
