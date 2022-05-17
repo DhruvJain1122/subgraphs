@@ -22,6 +22,8 @@ export function getOrCreateProtocol(): YieldAggregator {
     protocol.cumulativeUniqueUsers = 0;
 
     protocol._vaultIds = [];
+
+    protocol.save()
   }
   return protocol;
 }

@@ -5,7 +5,7 @@ import { getOrCreateProtocol } from "./protocol";
 import * as constants from "./constants";
 import { getOrCreateAccount } from "./account";
 
-export function updateUsageMetrics(block: ethereum.Block, from: Address): void {
+export function updateUsageMetrics(block: ethereum.Block, from: Address, callType:string = ''): void {
   const account = getOrCreateAccount(from.toHexString());
 
   const protocol = getOrCreateProtocol();
@@ -39,6 +39,14 @@ export function updateUsageMetrics(block: ethereum.Block, from: Address): void {
 
     usageMetricsDaily.dailyActiveUsers += 1;
     usageMetricsHourly.hourlyActiveUsers += 1;
+  }
+
+  if(callType === constants.CallType.DEPOSIT){
+    usageMetricsDaily.dailyDepositCount += 1
+    usageMetricsHourly.hourlyDepositCount += 1
+  }else if(callType === constants.CallType.WITHDRAW){
+    usageMetricsDaily.dailyWithdrawCount += 1
+    usageMetricsHourly.hourlyWithdrawCount += 1
   }
 
   usageMetricsDaily.save();

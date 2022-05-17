@@ -34,7 +34,7 @@ export function getOrCreateRewardToken(address: Address): RewardToken {
     rewardToken.token = token.id
     rewardToken.type = RewardTokenType.DEPOSIT;
 
-    token.save();
+    rewardToken.save();
   }
   return rewardToken as RewardToken;
 }

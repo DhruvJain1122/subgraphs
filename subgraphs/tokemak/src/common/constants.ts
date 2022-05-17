@@ -34,6 +34,10 @@ export namespace VaultFeeType {
   export const DEPOSIT_FEE = "DEPOSIT_FEE";
   export const WITHDRAWAL_FEE = "WITHDRAWAL_FEE";
 }
+export namespace CallType{
+  export const DEPOSIT = "DEPOSIT";
+  export const WITHDRAW = "WITHDRAW";
+}
 
 export namespace RewardTokenType {
   export const DEPOSIT = "DEPOSIT";
