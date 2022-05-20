@@ -97,7 +97,7 @@ function deposit(call: ethereum.Call, vault: VaultStore, depositAmount: BigInt, 
     convertTokenDecimals(decimals, token.decimals, outputToken.decimals).toBigDecimal(),
   );
 
-  vault.pricePerShare = decimals.toBigDecimal();
+  vault.pricePerShare = BIGDECIMAL_ONE;
   vault.save();
   protocol.save();
   getOrCreateDepositTransactionFromCall(call, depositAmount, amountUSD, "vault.deposit()");
@@ -163,7 +163,7 @@ function withdraw(call: ethereum.Call, vault: VaultStore, withdrawAmount: BigInt
   );
   vault.inputTokenBalance = tvl;
 
-  vault.pricePerShare = decimals.toBigDecimal();
+  vault.pricePerShare = BIGDECIMAL_ONE;
 
   vault.save();
   protocol.save();
