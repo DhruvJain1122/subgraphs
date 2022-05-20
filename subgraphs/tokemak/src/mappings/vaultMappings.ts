@@ -82,9 +82,11 @@ function deposit(call: ethereum.Call, vault: VaultStore, depositAmount: BigInt, 
   const amountUSD = tokenPrice.times(depositAmount.toBigDecimal()).div(decimals.toBigDecimal());
 
   const tvl = vault.inputTokenBalance.plus(depositAmount);
-  vault.totalValueLockedUSD = tokenPrice.times(tvl.toBigDecimal()).div(decimals.toBigDecimal());
+  const oldTVL = vault.totalValueLockedUSD
+  const newTVL = tokenPrice.times(tvl.toBigDecimal()).div(decimals.toBigDecimal());
+  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(newTVL).minus(oldTVL);
 
-  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(amountUSD);
+  vault.totalValueLockedUSD = newTVL
 
   vault.inputTokenBalance = tvl;
   vault.outputTokenSupply = vault.outputTokenSupply.plus(
@@ -146,9 +148,11 @@ function withdraw(call: ethereum.Call, vault: VaultStore, withdrawAmount: BigInt
   const amountUSD = tokenPrice.times(withdrawAmount.div(decimals).toBigDecimal());
 
   const tvl = vault.inputTokenBalance.minus(withdrawAmount);
+  const oldTVL = vault.totalValueLockedUSD
+  const newTVL = tokenPrice.times(tvl.toBigDecimal()).div(decimals.toBigDecimal());
+  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(newTVL).minus(oldTVL);
+  
   vault.totalValueLockedUSD = tokenPrice.times(tvl.div(decimals).toBigDecimal());
-
-  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.minus(amountUSD);
 
   vault.outputTokenSupply = vault.outputTokenSupply.minus(
     convertTokenDecimals(sharesBurnt, token.decimals, outputToken.decimals),
