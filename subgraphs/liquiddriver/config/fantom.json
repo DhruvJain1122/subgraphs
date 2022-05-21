@@ -1,5 +1,15 @@
 {
   "network": "fantom",
+  "masterchefv1":{
+    "name" : "MasterChefV1",
+    "address": "0x742474dAE70Fa2AB063aB786b1fBe5704e861a0c",
+    "block": 5686982
+  },
+  "masterchefv2":{
+    "name" : "MasterChefV2",
+    "address": "0x6e2ad6527901c9664f016466b8da1357a004db0f",
+    "block": 15999584
+  },
   "distributor" :[
     {
       "name": "Distributor V1",
