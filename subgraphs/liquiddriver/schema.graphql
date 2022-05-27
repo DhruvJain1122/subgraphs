@@ -46,6 +46,12 @@ type Token @entity {
 
   " Optional field to track the block number of the last token price "
   lastPriceBlockNumber: BigInt
+
+  
+  lastDistributionDate: BigInt
+
+  lastDistributionUSD: BigDecimal
+
 }
 
 enum RewardTokenType {
@@ -392,6 +398,9 @@ type Vault @entity {
   
   " All withdrawals made from this vault "
   withdraws: [Withdraw!]! @derivedFrom(field: "vault")
+
+  " Current PCV (Protocol Controlled Value). Only relevant for protocols with PCV. "
+  controlledValueUSD: BigDecimal
 }
 
 #################################
@@ -620,4 +629,39 @@ type _Strategy @entity {
 
   " Performance Fee of the Strategy "
   performanceFee: BigInt!
+}
+
+type _HelperStore @entity {
+  id: ID!
+
+  " price of ETH in USD "
+  valueDecimal: BigDecimal
+
+  " number of deposits, number of unique users "
+  valueInt: Int
+
+  valueBigInt: BigInt
+
+  " Contains the address mapping for MasterChef pool id "
+  valueString: String
+}
+
+type _CircularBuffer @entity {
+    " 'CIRCULAR_BUFFER' " 
+    id: ID! 
+
+    " Array of sorted block numbers sorted continuously "
+    blocks: [Int!]!
+
+    " The index in the blocks array which will be used with the newest block to calculate block speed (Usally set to about a day before newest block) "
+    windowStartIndex: Int!
+
+    " The next index in the blocks array that will be replaced with the newest block "
+    nextIndex: Int!
+
+    " This determines the size of the blocks array. Should be set to contain at least a days worth of blocks according to a 1 day window for measuring speed"
+    bufferSize: Int!
+
+    " The current calculated number of blocks per day based on calculated block speed "
+    blocksPerDay: BigDecimal!
 }

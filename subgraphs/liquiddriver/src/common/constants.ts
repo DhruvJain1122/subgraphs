@@ -41,6 +41,10 @@ export namespace RewardTokenType {
   export const DEPOSIT = "DEPOSIT";
   export const BORROW = "BORROW";
 }
+export namespace UsageType {
+  export const DEPOSIT = "DEPOSIT";
+  export const WITHDRAW = "WITHDRAW";
+}
 
 export const VAULT_VERSION_0_3_0 = '0.3.0'
 export const VAULT_VERSION_0_3_2 = '0.3.2'
@@ -61,10 +65,12 @@ export const DEFAULT_WITHDRAWAL_FEE = BigInt.fromI32(50);
 
 export const BIGINT_ZERO = BigInt.fromI32(0);
 export const BIGINT_ONE = BigInt.fromI32(1);
+export const BIGINT_FIVE = BigInt.fromI32(5);
 export const BIGINT_TEN = BigInt.fromI32(10);
 export const BIGINT_HUNDRED = BigInt.fromI32(100);
 
 export const BIGDECIMAL_ZERO = new BigDecimal(BIGINT_ZERO);
+export const BIGDECIMAL_ONE = new BigDecimal(BIGINT_ONE);
 export const BIGDECIMAL_HUNDRED = BigDecimal.fromString("100");
 
 export const ETHEREUM_PROTOCOL_ID =
@@ -77,3 +83,23 @@ export const ZERO_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
 export const ZERO_ADDRESS_STRING = "0x0000000000000000000000000000000000000000";
+
+export const ShadowTokensUnderlying : { [name: string]: string } = {
+  "0xc5713b6a0f26bf0fdc1c52b90cd184d950be515c" : "0x5cc61a78f164885776aa610fb0fe1257df78e59b",
+  "0xa147268f35db4ae3932eabe42af16c36a8b89690" : "0x10010078a54396f62c96df8532dc2b4847d47ed3"
+}
+
+export const LQDR_ADDRESS = "0x10b620b2dbac4faa7d7ffd71da486f5d44cd86f9";
+export const SPIRIT_ADDRESS = "0x5cc61a78f164885776aa610fb0fe1257df78e59b";
+export const HND_ADDRESS = "0x10010078a54396f62c96df8532dc2b4847d47ed3";
+
+export const LARGE_RANDOM_NUMBER = 1000
+
+export const DEVELOPER_FEE = BigDecimal.fromString("0.05")
+
+
+export const INT_NEGATIVE_ONE = -1 as i32;
+export const INT_ZERO = 0 as i32;
+export const INT_ONE = 1 as i32;
+export const INT_TWO = 2 as i32;
+export const INT_FOUR = 4 as i32;

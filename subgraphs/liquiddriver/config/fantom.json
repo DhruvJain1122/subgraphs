@@ -1,33 +1,40 @@
 {
   "network": "fantom",
-  "masterchefv1":{
-    "name" : "MasterChefV1",
+  "oldMasterchef":{
+    "name" : "OldMasterChef",
     "address": "0x742474dAE70Fa2AB063aB786b1fBe5704e861a0c",
     "block": 5686982
   },
-  "masterchefv2":{
-    "name" : "MasterChefV2",
+  "masterchefProxy":{
+    "name" : "MasterChefProxy",
     "address": "0x6e2ad6527901c9664f016466b8da1357a004db0f",
     "block": 15999584
   },
+  "shadowFarms" :[
+    {
+      "name": "SPIRIT",
+      "stakingAddress": "0x1CC765cD7baDf46A215bD142846595594AD4ffe3",
+      "stakingStartBlock": "22531313"
+    }
+  ],
   "distributor" :[
     {
-      "name": "Distributor V1",
+      "name": "DistributorV1",
       "address": "0x3D29859B742427065B459DD1c6e7E29B0343425a",
       "startBlock": "17602438"
     },
     {
-      "name": "Distributor V2",
+      "name": "DistributorV2",
       "address": "0xBA4284DF6566D967b80F71f9aF544D104491b2d3",
       "startBlock": "20973232"
     },
     {
-      "name": "Distributor V3",
+      "name": "DistributorV3",
       "address": "0x095010A79B28c99B2906A8dc217FC33AEfb7Db93",
       "startBlock": "24903666"
     },
     {
-      "name": "Distributor V4",
+      "name": "DistributorV4",
       "address": "0x326236f487aC37Fc2CB69569b20173e9ccF639C9",
       "startBlock": "34627402"
     }

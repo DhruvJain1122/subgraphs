@@ -3,70 +3,14 @@ repository: https://github.com/messari/subgraphs
 schema:
   file: ./schema.graphql
 dataSources:
+  ##ShadowFarm Staking##
   - kind: ethereum
-    name: MasterChef
-    network: fantom
+    name: "SPIRIT_STAKING"
+    network: "fantom"
     source:
-      address: "0x742474dAE70Fa2AB063aB786b1fBe5704e861a0c"
-      abi: MasterChefV1
-      startBlock: 5686982
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - _CircularBuffer
-        - RewardToken
-      abis:
-        - name: MasterChefV1
-          file: ./abis/Ethereum/MasterChefV1.json
-      eventHandlers:
-        - event: Deposit(indexed address,indexed uint256,uint256)
-          handler: handleDeposit
-        - event: Withdraw(indexed address,indexed uint256,uint256)
-          handler: handleWithdraw
-        - event: EmergencyWithdraw(indexed address,indexed uint256,uint256)
-          handler: handleEmergencyWithdraw
-      file: ./src/mappings/rewardMapping.ts
-
-  - kind: ethereum
-    name: MasterChefV2
-    network: matic
-    source:
-      address: "0x54aff400858Dcac39797a81894D9920f16972D1D"
-      abi: MasterChefV2Sushiswap
-      startBlock: 15797921
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities: 
-        - _CircularBuffer
-        - RewardToken
-      abis:
-        - name: MasterChefV2Sushiswap
-          file: ./abis/sushiswap/MasterChefV2Sushiswap.json
-        - name: MasterChefV2Apeswap
-          file: ./abis/apeswap/MasterChefV2Apeswap.json
-        - name: TokenABI
-          file: ./abis/sushiswap/ERC20.json
-      eventHandlers:
-        - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
-          handler: handleDepositV2
-        - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handleWithdrawV2
-        - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handleEmergencyWithdrawV2
-      file: ./src/mappings/rewardMapping.ts
- 
-  - kind: ethereum
-    name: MasterChefV1
-    network: fantom
-    source:
-      abi: Registry_v1
-      address: "0x742474dAE70Fa2AB063aB786b1fBe5704e861a0c"
-      startBlock: 5686982
-      
+      startBlock: 22531313
+      address: '0x1CC765cD7baDf46A215bD142846595594AD4ffe3'
+      abi: ShadowStaking
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -74,22 +18,26 @@ dataSources:
       entities:
         - NewVault
       abis:
-        - name: Registry_v1
-          file: ./abis/Ethereum/Registry_v1.json
-        - name: Vault
-          file: ./abis/Ethereum/Vaults/_vault_.json
-        - name: Strategy
-          file: ./abis/Ethereum/Strategies/_strategy_.json
+        - name: ShadowStaking
+          file: ./abis/Ethereum/ShadowStaking.json
+        - name: HNDMasterChef
+          file: ./abis/Ethereum/HNDMasterChef.json
+        - name: SPIRITMasterChef
+          file: ./abis/Ethereum/SPIRITMasterChef.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
         
         ###########################################
         ############## Price Oracle ###############
         ###########################################
         # ERC20
-        - name: ERC20
+        - name: PriceOracleERC20
           file: ./abis/Prices/ERC20.json
         # Curve Contracts
         - name: CurveRegistry
           file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
         - name: CalculationsCurve
           file: ./abis/Prices/Calculations/Curve.json
         # YearnLens Contracts
@@ -115,9 +63,374 @@ dataSources:
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
-        - event: NewVault(indexed address,indexed uint256,address,string)
-          handler: handleNewVault
-        - event: NewExperimentalVault(indexed address,indexed address,address,string)
-          handler: handleNewExperimentalVault
-      file: ./src/mappings/rewardMapping.ts
- 
+        - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
+          handler: handelWithdraw
+        - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
+          handler: handelEmergencyWithdraw
+      file: ./src/mappings/shadowFarmMapping.ts
+  ##ShadowFarm Staking##
+
+ ## MASTERCHEF OLD##
+  - kind: ethereum
+    name: "OldMasterChef"
+    network: "fantom"
+    source:
+      startBlock: 
+      address: '0x742474dAE70Fa2AB063aB786b1fBe5704e861a0c'
+      abi: OldMasterChef
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - NewVault
+      abis:
+        - name: OldMasterChef
+          file: ./abis/Ethereum/OldMasterChef.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
+        
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Curve Contracts
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        # ChainLink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Deposit(indexed address,indexed uint256,uint256)
+          handler: handelDepositMasterChefOld
+        - event: Withdraw(indexed address,indexed uint256,uint256)
+          handler: handelWithdrawMasterChefOld
+        - event: EmergencyWithdraw(indexed address,indexed uint256,uint256)
+          handler: handelEmergencyWithdrawMasterChefOld
+      file: ./src/mappings/masterchefMapping.ts
+  
+  ## MASTERCHEF OLD##
+
+
+  - kind: ethereum
+    name: "MasterChefProxy"
+    network: "fantom"
+    source:
+      startBlock: 
+      address: '0x6e2ad6527901c9664f016466b8da1357a004db0f'
+      abi: MasterChefProxy
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - NewVault
+      abis:
+        - name: MasterChefProxy
+          file: ./abis/Ethereum/MasterChefProxy.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
+        
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Curve Contracts
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        # ChainLink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
+          handler: handelDepositMasterChef
+        - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
+          handler: handelWithdrawMasterChef
+        - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
+          handler: handelEmergencyWithdrawMasterChef
+      file: ./src/mappings/masterchefMapping.ts
+  
+  - kind: ethereum
+    name: "DistributorV1"
+    network: "fantom"
+    source:
+      startBlock: 17602438
+      address: '0x3D29859B742427065B459DD1c6e7E29B0343425a'
+      abi: Distributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - NewVault
+      abis:
+        - name: Distributor
+          file: ./abis/Ethereum/distributor.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
+        
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Curve Contracts
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        # ChainLink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Claimed(indexed address,uint256,uint256,uint256)
+          handler: handleClaim
+      file: ./src/mappings/distributorMappings.ts
+  - kind: ethereum
+    name: "DistributorV2"
+    network: "fantom"
+    source:
+      startBlock: 20973232
+      address: '0xBA4284DF6566D967b80F71f9aF544D104491b2d3'
+      abi: Distributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - NewVault
+      abis:
+        - name: Distributor
+          file: ./abis/Ethereum/distributor.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
+        
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Curve Contracts
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        # ChainLink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Claimed(indexed address,uint256,uint256,uint256)
+          handler: handleClaim
+      file: ./src/mappings/distributorMappings.ts
+  - kind: ethereum
+    name: "DistributorV3"
+    network: "fantom"
+    source:
+      startBlock: 24903666
+      address: '0x095010A79B28c99B2906A8dc217FC33AEfb7Db93'
+      abi: Distributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - NewVault
+      abis:
+        - name: Distributor
+          file: ./abis/Ethereum/distributor.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
+        
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Curve Contracts
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        # ChainLink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Claimed(indexed address,uint256,uint256,uint256)
+          handler: handleClaim
+      file: ./src/mappings/distributorMappings.ts
+  - kind: ethereum
+    name: "DistributorV4"
+    network: "fantom"
+    source:
+      startBlock: 34627402
+      address: '0x326236f487aC37Fc2CB69569b20173e9ccF639C9'
+      abi: Distributor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - NewVault
+      abis:
+        - name: Distributor
+          file: ./abis/Ethereum/distributor.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
+        
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Curve Contracts
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        # ChainLink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Claimed(indexed address,uint256,uint256,uint256)
+          handler: handleClaim
+      file: ./src/mappings/distributorMappings.ts

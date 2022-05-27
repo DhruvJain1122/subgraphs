@@ -18,8 +18,6 @@ import {
 import * as utils from "../common/utils";
 import { getUsdPricePerToken } from "../Prices";
 import * as constants from "../common/constants";
-import { getPriceOfOutputTokens } from "./Price";
-import { Vault as VaultContract } from "../../generated/Registry_v1/Vault";
 
 export function createWithdrawTransaction(
   to: Address,
@@ -65,19 +63,23 @@ export function _Withdraw(
   block: ethereum.Block,
   vault: VaultStore,
   withdrawAmount: BigInt,
-  sharesBurnt: BigInt
+  sharesBurnt: BigInt | null
 ): void {
   const vaultAddress = Address.fromString(vault.id);
-  const vaultContract = VaultContract.bind(vaultAddress);
   const protocol = getOrCreateYieldAggregator(constants.ETHEREUM_PROTOCOL_ID);
 
   let inputToken = Token.load(vault.inputToken);
   let inputTokenAddress = Address.fromString(vault.inputToken);
+
+  //Shadow Farm
+  if(constants.ShadowTokensUnderlying[vault.inputToken.toLowerCase()]){
+    inputTokenAddress = Address.fromString(constants.ShadowTokensUnderlying[vault.inputToken.toLowerCase()])
+  }
+
   let inputTokenPrice = getUsdPricePerToken(inputTokenAddress);
   let inputTokenDecimals = constants.BIGINT_TEN.pow(inputToken!.decimals as u8);
 
   vault.inputTokenBalance = vault.inputTokenBalance.minus(withdrawAmount);
-  vault.outputTokenSupply = vault.outputTokenSupply.minus(sharesBurnt);
 
   vault.totalValueLockedUSD = inputTokenPrice.usdPrice
     .times(vault.inputTokenBalance.toBigDecimal())
@@ -91,15 +93,7 @@ export function _Withdraw(
       .div(inputTokenPrice.decimalsBaseTen)
   );
 
-  vault.outputTokenPriceUSD = getPriceOfOutputTokens(
-    vaultAddress,
-    inputTokenAddress,
-    inputTokenDecimals.toBigDecimal()
-  );
 
-  vault.pricePerShare = utils
-    .readValue<BigInt>(vaultContract.try_pricePerShare(), constants.BIGINT_ZERO)
-    .toBigDecimal();
   vault.save();
 
   let withdrawAmountUSD = inputTokenPrice.usdPrice
@@ -128,13 +122,4 @@ export function _Withdraw(
   metricsHourlySnapshot.save();
   protocol.save();
 
-  log.info(
-    "[Withdrawn] TxHash: {}, vaultAddress: {}, _sharesBurnt: {}, _withdrawAmount: {}",
-    [
-      transaction.hash.toHexString(),
-      vault.id,
-      sharesBurnt.toString(),
-      withdrawAmount.toString(),
-    ]
-  );
 }

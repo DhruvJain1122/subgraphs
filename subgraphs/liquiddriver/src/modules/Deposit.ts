@@ -17,7 +17,6 @@ import {
 } from "@graphprotocol/graph-ts";
 import * as utils from "../common/utils";
 import { getUsdPricePerToken } from "../Prices";
-import { getPriceOfOutputTokens } from "./Price";
 import * as constants from "../common/constants";
 import { Vault as VaultContract } from "../../generated/Registry_v1/Vault";
 
@@ -85,19 +84,20 @@ export function _Deposit(
   transaction: ethereum.Transaction,
   block: ethereum.Block,
   vault: VaultStore,
-  sharesMinted: BigInt,
-  depositAmount: BigInt | null = null
+  depositAmount: BigInt,
+  sharesMinted: BigInt | null
 ): void {
   const vaultAddress = Address.fromString(vault.id);
-  const vaultContract = VaultContract.bind(vaultAddress);
   const protocol = getOrCreateYieldAggregator(constants.ETHEREUM_PROTOCOL_ID);
 
-  if (!depositAmount) {
-    depositAmount = calculateAmountDeposited(vaultAddress, sharesMinted);
-  }
 
   let inputToken = Token.load(vault.inputToken);
   let inputTokenAddress = Address.fromString(vault.inputToken);
+
+  if(constants.ShadowTokensUnderlying[vault.inputToken.toLowerCase()]){
+      inputTokenAddress = Address.fromString(constants.ShadowTokensUnderlying[vault.inputToken.toLowerCase()])
+  }
+  
   let inputTokenPrice = getUsdPricePerToken(inputTokenAddress);
   let inputTokenDecimals = constants.BIGINT_TEN.pow(inputToken!.decimals as u8);
 
@@ -107,7 +107,7 @@ export function _Deposit(
     .div(inputTokenPrice.decimalsBaseTen);
 
   vault.inputTokenBalance = vault.inputTokenBalance.plus(depositAmount);
-  vault.outputTokenSupply = vault.outputTokenSupply.plus(sharesMinted);
+  
 
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(
     inputTokenPrice.usdPrice
@@ -116,15 +116,7 @@ export function _Deposit(
       .div(inputTokenPrice.decimalsBaseTen)
   );
 
-  vault.outputTokenPriceUSD = getPriceOfOutputTokens(
-    vaultAddress,
-    inputTokenAddress,
-    inputTokenDecimals.toBigDecimal()
-  );
 
-  vault.pricePerShare = utils
-    .readValue<BigInt>(vaultContract.try_pricePerShare(), constants.BIGINT_ZERO)
-    .toBigDecimal();
   vault.save();
 
   let depositAmountUSD = inputTokenPrice.usdPrice
@@ -154,13 +146,4 @@ export function _Deposit(
 
   protocol.save();
 
-  log.info(
-    "[Deposit] TxHash: {}, vaultAddress: {}, _sharesMinted: {}, _depositAmount: {}",
-    [
-      transaction.hash.toHexString(),
-      vault.id,
-      sharesMinted.toString(),
-      depositAmount.toString(),
-    ]
-  );
 }

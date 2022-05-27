@@ -16,19 +16,17 @@ import { Vault as VaultStore } from "../../generated/schema";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { Vault as VaultContract } from "../../generated/Registry_v1/Vault";
 import { ERC20 as ERC20Contract } from "../../generated/Registry_v1/ERC20";
+import { MasterChefProxy } from "../../generated/MasterChefProxy/MasterChefProxy";
 
 export function getOrCreateStrategy(
   vaultAddress: Address,
-  _strategyAddress: Address,
-  performanceFee: BigInt
+  _strategyAddress: Address
 ): _Strategy {
   let strategy = _Strategy.load(_strategyAddress.toHexString());
 
   if (!strategy) {
     strategy = new _Strategy(_strategyAddress.toHexString());
-    strategy.lastReport = constants.BIGINT_ZERO;
     strategy.vaultAddress = vaultAddress;
-    strategy.performanceFee = performanceFee;
   }
   return strategy;
 }
@@ -53,9 +51,9 @@ export function getOrCreateYieldAggregator(id: string): YieldAggregator {
 
   if (!protocol) {
     protocol = new YieldAggregator(constants.ETHEREUM_PROTOCOL_ID);
-    protocol.name = "Yearn v2";
-    protocol.slug = "yearn-v2";
-    protocol.schemaVersion = "1.2.0";
+    protocol.name = "Liquiddriver";
+    protocol.slug = "liquiddriver";
+    protocol.schemaVersion = "1.2.1";
     protocol.subgraphVersion = "1.0.0";
     protocol.methodologyVersion = "1.0.0";
     protocol.network = constants.Network.MAINNET;
@@ -249,7 +247,7 @@ export function getOrCreateVault(
   block: ethereum.Block
 ): VaultStore {
   const vaultAddressString = vaultAddress.toHexString();
-  const vaultContract = VaultContract.bind(vaultAddress);
+  const vaultContract = ERC20Contract.bind(vaultAddress);
 
   let vault = VaultStore.load(vaultAddressString);
 
@@ -259,17 +257,13 @@ export function getOrCreateVault(
     vault.name = utils.readValue<string>(vaultContract.try_name(), "");
     vault.symbol = utils.readValue<string>(vaultContract.try_symbol(), "");
     vault.protocol = constants.ETHEREUM_PROTOCOL_ID;
-    vault.depositLimit = utils.readValue<BigInt>(
-      vaultContract.try_depositLimit(),
-      constants.BIGINT_ZERO
-    );
+  
 
-    const inputToken = getOrCreateToken(vaultContract.token());
-    vault.inputToken = inputToken.id;
+    const rewardToken = getOrCreateToken(Address.fromString(constants.LQDR_ADDRESS));
+    vault.rewardTokens = [rewardToken.id]
     vault.inputTokenBalance = constants.BIGINT_ZERO;
 
-    const outputToken = getOrCreateToken(vaultAddress);
-    vault.outputToken = outputToken.id;
+    // vault.outputToken = outputToken.id;
     vault.outputTokenSupply = constants.BIGINT_ZERO;
 
     vault.outputTokenPriceUSD = constants.BIGDECIMAL_ZERO;
@@ -280,33 +274,48 @@ export function getOrCreateVault(
 
     vault.totalValueLockedUSD = constants.BIGDECIMAL_ZERO;
 
-    const managementFeeId =
-      enumToPrefix(constants.VaultFeeType.MANAGEMENT_FEE) +
-      vaultAddress.toHexString();
-    let managementFee = utils.readValue<BigInt>(
-      vaultContract.try_managementFee(),
-      constants.DEFAULT_MANAGEMENT_FEE
-    );
-    utils.createFeeType(
-      managementFeeId,
-      constants.VaultFeeType.MANAGEMENT_FEE,
-      managementFee
-    );
 
-    const performanceFeeId =
-      enumToPrefix(constants.VaultFeeType.PERFORMANCE_FEE) +
-      vaultAddress.toHexString();
-    let performanceFee = utils.readValue<BigInt>(
-      vaultContract.try_performanceFee(),
-      constants.DEFAULT_PERFORMANCE_FEE
-    );
-    utils.createFeeType(
-      performanceFeeId,
-      constants.VaultFeeType.PERFORMANCE_FEE,
-      performanceFee
-    );
+    vault.save();
+  }
 
-    vault.fees = [managementFeeId, performanceFeeId];
+  return vault;
+}
+
+export function getOrCreateShadowVault(
+  vaultAddress: Address,
+  block: ethereum.Block
+): VaultStore {
+  const vaultAddressString = vaultAddress.toHexString();
+  const vaultContract = MasterChefProxy.bind(vaultAddress);
+  const lpTokenCall = vaultContract.try_lpToken(constants.BIGINT_ZERO);
+  let lpTokenAddress = null
+  if(!lpTokenCall.reverted){
+      lpTokenAddress = lpTokenCall.value
+  }
+  let vault = VaultStore.load(vaultAddressString);
+
+  if (!vault) {
+    vault = new VaultStore(vaultAddressString);
+
+
+    const rewardToken = getOrCreateToken(Address.fromString(constants.ShadowTokensUnderlying[lpTokenAddress!.toHexString().toLowerCase()]));
+    vault.rewardTokens = [rewardToken.id]
+    vault.protocol = constants.ETHEREUM_PROTOCOL_ID;
+  
+
+    vault.inputTokenBalance = constants.BIGINT_ZERO;
+
+    vault.outputTokenSupply = constants.BIGINT_ZERO;
+
+    vault.outputTokenPriceUSD = constants.BIGDECIMAL_ZERO;
+    vault.pricePerShare = constants.BIGDECIMAL_ZERO;
+
+    vault.createdBlockNumber = block.number;
+    vault.createdTimestamp = block.timestamp;
+
+    vault.totalValueLockedUSD = constants.BIGDECIMAL_ZERO;
+
+
     vault.save();
   }
 
