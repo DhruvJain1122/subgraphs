@@ -4,10 +4,10 @@ import { CustomPriceType } from "../common/types";
 import {
   UniswapPair as UniswapPairContract,
   UniswapPair__getReservesResult,
-} from "../../../generated/Registry_v1/UniswapPair";
+} from "../../../generated/MasterChefProxy/UniswapPair";
 
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { UniswapRouter as UniswapRouterContract } from "../../../generated/Registry_v1/UniswapRouter";
+import { UniswapRouter as UniswapRouterContract } from "../../../generated/MasterChefProxy/UniswapRouter";
 
 export function isLpToken(tokenAddress: Address, network: string): bool {
   if (

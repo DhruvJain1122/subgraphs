@@ -73,8 +73,8 @@ export const BIGDECIMAL_ZERO = new BigDecimal(BIGINT_ZERO);
 export const BIGDECIMAL_ONE = new BigDecimal(BIGINT_ONE);
 export const BIGDECIMAL_HUNDRED = BigDecimal.fromString("100");
 
-export const ETHEREUM_PROTOCOL_ID =
-  "0xe15461b18ee31b7379019dc523231c57d1cbc18c";
+export const PROTOCOL_ID =
+  "0x10b620b2dbac4faa7d7ffd71da486f5d44cd86f9";
 
 export const USDC_DECIMALS = 6;
 export const DEFAULT_DECIMALS = BigInt.fromI32(18);
@@ -83,15 +83,14 @@ export const ZERO_ADDRESS = Address.fromString(
   "0x0000000000000000000000000000000000000000"
 );
 export const ZERO_ADDRESS_STRING = "0x0000000000000000000000000000000000000000";
-
-export const ShadowTokensUnderlying : { [name: string]: string } = {
-  "0xc5713b6a0f26bf0fdc1c52b90cd184d950be515c" : "0x5cc61a78f164885776aa610fb0fe1257df78e59b",
-  "0xa147268f35db4ae3932eabe42af16c36a8b89690" : "0x10010078a54396f62c96df8532dc2b4847d47ed3"
-}
+export const LINSPIRIT_ADDRESS = "0x5cc61a78f164885776aa610fb0fe1257df78e59b";
+export const LIHND_ADDRESS = "0x5cc61a78f164885776aa610fb0fe1257df78e59b";
 
 export const LQDR_ADDRESS = "0x10b620b2dbac4faa7d7ffd71da486f5d44cd86f9";
 export const SPIRIT_ADDRESS = "0x5cc61a78f164885776aa610fb0fe1257df78e59b";
 export const HND_ADDRESS = "0x10010078a54396f62c96df8532dc2b4847d47ed3";
+
+export const ShadowTokensUnderlying = new Map<string, string>().set(LINSPIRIT_ADDRESS, SPIRIT_ADDRESS).set(LIHND_ADDRESS, HND_ADDRESS)
 
 export const LARGE_RANDOM_NUMBER = 1000
 

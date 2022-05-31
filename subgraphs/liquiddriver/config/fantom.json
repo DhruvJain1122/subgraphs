@@ -15,6 +15,11 @@
       "name": "SPIRIT",
       "stakingAddress": "0x1CC765cD7baDf46A215bD142846595594AD4ffe3",
       "stakingStartBlock": "22531313"
+    },
+    {
+      "name": "HND",
+      "stakingAddress": "0xdf2dA1E24ADa883366972A73d23d1aDDA8CF7CD2",
+      "stakingStartBlock": "31948739"
     }
   ],
   "distributor" :[

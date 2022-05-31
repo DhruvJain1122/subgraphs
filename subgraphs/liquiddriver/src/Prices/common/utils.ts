@@ -1,5 +1,5 @@
 import * as constants from "./constants";
-import { PriceOracleERC20 } from "../../../generated/Registry_v1/PriceOracleERC20";
+import { PriceOracleERC20 } from "../../../generated/MasterChefProxy/PriceOracleERC20";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 
 export function readValue<T>(

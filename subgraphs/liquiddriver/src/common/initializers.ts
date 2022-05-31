@@ -14,8 +14,7 @@ import * as constants from "./constants";
 import { enumToPrefix } from "./strings";
 import { Vault as VaultStore } from "../../generated/schema";
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { Vault as VaultContract } from "../../generated/Registry_v1/Vault";
-import { ERC20 as ERC20Contract } from "../../generated/Registry_v1/ERC20";
+import { ERC20 as ERC20Contract } from "../../generated/MasterChefProxy/ERC20";
 import { MasterChefProxy } from "../../generated/MasterChefProxy/MasterChefProxy";
 
 export function getOrCreateStrategy(
@@ -38,7 +37,7 @@ export function getOrCreateAccount(id: string): Account {
     account = new Account(id);
     account.save();
 
-    const protocol = getOrCreateYieldAggregator(constants.ETHEREUM_PROTOCOL_ID);
+    const protocol = getOrCreateYieldAggregator(constants.PROTOCOL_ID);
     protocol.cumulativeUniqueUsers += 1;
     protocol.save();
   }
@@ -50,13 +49,13 @@ export function getOrCreateYieldAggregator(id: string): YieldAggregator {
   let protocol = YieldAggregator.load(id);
 
   if (!protocol) {
-    protocol = new YieldAggregator(constants.ETHEREUM_PROTOCOL_ID);
+    protocol = new YieldAggregator(constants.PROTOCOL_ID);
     protocol.name = "Liquiddriver";
     protocol.slug = "liquiddriver";
     protocol.schemaVersion = "1.2.1";
     protocol.subgraphVersion = "1.0.0";
     protocol.methodologyVersion = "1.0.0";
-    protocol.network = constants.Network.MAINNET;
+    protocol.network = constants.Network.FANTOM;
     protocol.type = constants.ProtocolType.YIELD;
 
     //////// Quantitative Data ////////
@@ -101,7 +100,7 @@ export function getOrCreateFinancialDailySnapshots(
 
   if (!financialMetrics) {
     financialMetrics = new FinancialsDailySnapshot(id.toString());
-    financialMetrics.protocol = constants.ETHEREUM_PROTOCOL_ID;
+    financialMetrics.protocol = constants.PROTOCOL_ID;
 
     financialMetrics.totalValueLockedUSD = constants.BIGDECIMAL_ZERO;
     financialMetrics.protocolControlledValueUSD = constants.BIGDECIMAL_ZERO;
@@ -131,7 +130,7 @@ export function getOrCreateUsageMetricsDailySnapshot(
 
   if (!usageMetrics) {
     usageMetrics = new UsageMetricsDailySnapshot(id.toString());
-    usageMetrics.protocol = constants.ETHEREUM_PROTOCOL_ID;
+    usageMetrics.protocol = constants.PROTOCOL_ID;
 
     usageMetrics.dailyActiveUsers = 0;
     usageMetrics.cumulativeUniqueUsers = 0;
@@ -159,7 +158,7 @@ export function getOrCreateUsageMetricsHourlySnapshot(
 
   if (!usageMetrics) {
     usageMetrics = new UsageMetricsHourlySnapshot(metricsID);
-    usageMetrics.protocol = constants.ETHEREUM_PROTOCOL_ID;
+    usageMetrics.protocol = constants.PROTOCOL_ID;
 
     usageMetrics.hourlyActiveUsers = 0;
     usageMetrics.cumulativeUniqueUsers = 0;
@@ -187,7 +186,7 @@ export function getOrCreateVaultsDailySnapshots(
 
   if (!vaultSnapshots) {
     vaultSnapshots = new VaultDailySnapshot(id);
-    vaultSnapshots.protocol = constants.ETHEREUM_PROTOCOL_ID;
+    vaultSnapshots.protocol = constants.PROTOCOL_ID;
     vaultSnapshots.vault = vaultAddress.toHexString();
 
     vaultSnapshots.totalValueLockedUSD = constants.BIGDECIMAL_ZERO;
@@ -221,7 +220,7 @@ export function getOrCreateVaultsHourlySnapshots(
 
   if (!vaultSnapshots) {
     vaultSnapshots = new VaultHourlySnapshot(id);
-    vaultSnapshots.protocol = constants.ETHEREUM_PROTOCOL_ID;
+    vaultSnapshots.protocol = constants.PROTOCOL_ID;
     vaultSnapshots.vault = vaultAddress.toHexString();
 
     vaultSnapshots.totalValueLockedUSD = constants.BIGDECIMAL_ZERO;
@@ -256,7 +255,7 @@ export function getOrCreateVault(
 
     vault.name = utils.readValue<string>(vaultContract.try_name(), "");
     vault.symbol = utils.readValue<string>(vaultContract.try_symbol(), "");
-    vault.protocol = constants.ETHEREUM_PROTOCOL_ID;
+    vault.protocol = constants.PROTOCOL_ID;
   
 
     const rewardToken = getOrCreateToken(Address.fromString(constants.LQDR_ADDRESS));
@@ -268,7 +267,7 @@ export function getOrCreateVault(
 
     vault.outputTokenPriceUSD = constants.BIGDECIMAL_ZERO;
     vault.pricePerShare = constants.BIGDECIMAL_ZERO;
-
+    vault.stakedOutputTokenAmount = constants.BIGINT_ZERO
     vault.createdBlockNumber = block.number;
     vault.createdTimestamp = block.timestamp;
 
@@ -288,7 +287,7 @@ export function getOrCreateShadowVault(
   const vaultAddressString = vaultAddress.toHexString();
   const vaultContract = MasterChefProxy.bind(vaultAddress);
   const lpTokenCall = vaultContract.try_lpToken(constants.BIGINT_ZERO);
-  let lpTokenAddress = null
+  let lpTokenAddress = constants.ZERO_ADDRESS
   if(!lpTokenCall.reverted){
       lpTokenAddress = lpTokenCall.value
   }
@@ -298,9 +297,9 @@ export function getOrCreateShadowVault(
     vault = new VaultStore(vaultAddressString);
 
 
-    const rewardToken = getOrCreateToken(Address.fromString(constants.ShadowTokensUnderlying[lpTokenAddress!.toHexString().toLowerCase()]));
+    const rewardToken = getOrCreateToken(Address.fromString(constants.ShadowTokensUnderlying.get(lpTokenAddress.toHexString().toLowerCase())));
     vault.rewardTokens = [rewardToken.id]
-    vault.protocol = constants.ETHEREUM_PROTOCOL_ID;
+    vault.protocol = constants.PROTOCOL_ID;
   
 
     vault.inputTokenBalance = constants.BIGINT_ZERO;
@@ -309,12 +308,13 @@ export function getOrCreateShadowVault(
 
     vault.outputTokenPriceUSD = constants.BIGDECIMAL_ZERO;
     vault.pricePerShare = constants.BIGDECIMAL_ZERO;
+    vault.stakedOutputTokenAmount = constants.BIGINT_ZERO
 
     vault.createdBlockNumber = block.number;
     vault.createdTimestamp = block.timestamp;
 
     vault.totalValueLockedUSD = constants.BIGDECIMAL_ZERO;
-
+    vault.fees = []
 
     vault.save();
   }

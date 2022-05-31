@@ -7,7 +7,7 @@ dataSources:
    {{#shadowFarms}}
   - kind: ethereum
     name: "{{name}}_STAKING"
-    network: "fantom"
+    network: fantom
     source:
       startBlock: {{stakingStartBlock}}
       address: '{{stakingAddress}}'
@@ -67,9 +67,9 @@ dataSources:
         - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
           handler: handleDeposit
         - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelWithdraw
+          handler: handleWithdraw
         - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelEmergencyWithdraw
+          handler: handleEmergencyWithdraw
       file: ./src/mappings/shadowFarmMapping.ts
   {{/shadowFarms}}
   ##ShadowFarm Staking##
@@ -77,9 +77,9 @@ dataSources:
  ## MASTERCHEF OLD##
   - kind: ethereum
     name: "OldMasterChef"
-    network: "fantom"
+    network: fantom
     source:
-      startBlock: {{oldMasterchef.startBlock}}
+      startBlock: {{oldMasterchef.block}}
       address: '{{oldMasterchef.address}}'
       abi: OldMasterChef
     mapping:
@@ -131,21 +131,20 @@ dataSources:
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
         - event: Deposit(indexed address,indexed uint256,uint256)
-          handler: handelDepositMasterChefOld
+          handler: handleDepositMasterChefOld
         - event: Withdraw(indexed address,indexed uint256,uint256)
-          handler: handelWithdrawMasterChefOld
+          handler: handleWithdrawMasterChefOld
         - event: EmergencyWithdraw(indexed address,indexed uint256,uint256)
-          handler: handelEmergencyWithdrawMasterChefOld
+          handler: handleEmergencyWithdrawMasterChefOld
       file: ./src/mappings/masterchefMapping.ts
   
   ## MASTERCHEF OLD##
 
-
   - kind: ethereum
     name: "MasterChefProxy"
-    network: "fantom"
+    network: fantom
     source:
-      startBlock: {{masterchefProxy.startBlock}}
+      startBlock: {{masterchefProxy.block}}
       address: '{{masterchefProxy.address}}'
       abi: MasterChefProxy
     mapping:
@@ -197,17 +196,17 @@ dataSources:
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
         - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelDepositMasterChef
+          handler: handleDepositMasterChef
         - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelWithdrawMasterChef
+          handler: handleWithdrawMasterChef
         - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelEmergencyWithdrawMasterChef
+          handler: handleEmergencyWithdrawMasterChef
       file: ./src/mappings/masterchefMapping.ts
   
    {{#distributor}}
   - kind: ethereum
     name: "{{name}}"
-    network: "fantom"
+    network: fantom
     source:
       startBlock: {{startBlock}}
       address: '{{address}}'

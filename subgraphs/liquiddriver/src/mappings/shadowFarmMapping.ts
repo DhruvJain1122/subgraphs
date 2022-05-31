@@ -3,7 +3,7 @@ import {ERC20} from "../../generated/SPIRIT_STAKING/ERC20"
 import { getOrCreateShadowVault, getOrCreateToken, getOrCreateVault, getOrCreateYieldAggregator } from "../common/initializers";
 import { updateFinancials, updateUsageMetrics, updateVaultSnapshots } from "../modules/Metrics";
 import { Address } from "@graphprotocol/graph-ts";
-import { BIGINT_TEN, ETHEREUM_PROTOCOL_ID, ShadowTokensUnderlying, UsageType } from "../common/constants";
+import { BIGINT_TEN, BIGINT_ZERO, PROTOCOL_ID, INT_ZERO, ShadowTokensUnderlying, UsageType } from "../common/constants";
 import { getUsdPricePerToken } from "../Prices";
 import { Vault } from "../../generated/schema";
 import { handleShadowFarmsReward } from "../modules/Reward";
@@ -20,7 +20,7 @@ export function handleDeposit(event: Deposit): void{
     updateUsageMetrics(event.block, event.transaction.from);
     updateVaultSnapshots(vaultAddress, event.block);
 
-    const lpTokenAddress = Address.fromString(vault.inputToken)
+    const lpTokenAddress = Address.fromString(vault.rewardTokens![INT_ZERO])
     updateControlledValue(lpTokenAddress, vault)
 }
 
@@ -36,7 +36,7 @@ export function handleWithdraw(event: Withdraw): void{
     updateUsageMetrics(event.block, event.transaction.from);
     updateVaultSnapshots(vaultAddress, event.block);
 
-    const lpTokenAddress = Address.fromString(vault.inputToken)
+    const lpTokenAddress = Address.fromString(vault.rewardTokens![INT_ZERO])
     updateControlledValue(lpTokenAddress, vault)
 }
 export function handleEmergencyWithdraw(event: EmergencyWithdraw): void{
@@ -51,7 +51,7 @@ export function handleEmergencyWithdraw(event: EmergencyWithdraw): void{
   updateUsageMetrics(event.block, event.transaction.from);
   updateVaultSnapshots(vaultAddress, event.block);
 
-  const lpTokenAddress = Address.fromString(vault.inputToken)
+  const lpTokenAddress = Address.fromString(vault.rewardTokens![INT_ZERO])
   updateControlledValue(lpTokenAddress, vault)
 }
 
@@ -61,13 +61,13 @@ function updateControlledValue(lpTokenAddress: Address, vault: Vault):void{
     const totalSupplyCall = lpTokenContract.try_totalSupply()
     if(!totalSupplyCall.reverted){
         const totalSupply = totalSupplyCall.value;
-        const protocol = getOrCreateYieldAggregator(ETHEREUM_PROTOCOL_ID)
+        const protocol = getOrCreateYieldAggregator(PROTOCOL_ID)
 
         const controlledValueUSD = vault.controlledValueUSD
 
-        const inputTokenAddress = Address.fromString(ShadowTokensUnderlying[vault.inputToken.toLowerCase()])
+        const inputTokenAddress = Address.fromString(ShadowTokensUnderlying.get(vault.rewardTokens![INT_ZERO].toLowerCase()))
         let inputTokenPrice = getUsdPricePerToken(inputTokenAddress);
-        let lpTokenDecimals = BIGINT_TEN.pow(lpToken!.decimals as u8);
+        let lpTokenDecimals = BIGINT_TEN.pow(lpToken.decimals as u8);
       
         vault.controlledValueUSD = inputTokenPrice.usdPrice
           .times(totalSupply.toBigDecimal())
@@ -76,7 +76,7 @@ function updateControlledValue(lpTokenAddress: Address, vault: Vault):void{
 
         vault.save()
         
-        protocol.protocolControlledValueUSD = protocol.protocolControlledValueUSD!.minus(controlledValueUSD!).plus(vault.controlledValueUSD)
+        protocol.protocolControlledValueUSD = protocol.protocolControlledValueUSD!.minus(controlledValueUSD!).plus(vault.controlledValueUSD!)
        
         protocol.save()
         

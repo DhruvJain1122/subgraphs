@@ -5,7 +5,7 @@ import { SPIRITMasterChef } from "../../generated/SPIRIT_STAKING/SPIRITMasterChe
 import { HNDMasterChef } from "../../generated/SPIRIT_STAKING/HNDMasterChef";
 import { MasterChefProxy } from "../../generated/MasterChefProxy/MasterChefProxy";
 import { Vault, _HelperStore } from "../../generated/schema";
-import { BIGDECIMAL_ONE, BIGINT_FIVE, BIGINT_ONE, BIGINT_ZERO, HND_ADDRESS, INT_ZERO, SPIRIT_ADDRESS, UsageType, ZERO_ADDRESS } from "../common/constants";
+import { BIGDECIMAL_ONE, BIGINT_FIVE, BIGINT_ONE, BIGINT_ZERO, HND_ADDRESS, INT_ZERO, SPIRIT_ADDRESS, UsageType, ZERO_ADDRESS, ZERO_ADDRESS_STRING } from "../common/constants";
 import { getOrCreateShadowVault, getOrCreateToken } from "../common/initializers";
 import { getRewardsPerDay, RewardIntervalType } from "../common/rewards";
 import { getOrCreateVault } from "../common/initializers";
@@ -19,9 +19,10 @@ export function handleRewardOld(event: ethereum.Event, pid: BigInt, amount: BigI
   if (!masterChefPool) {
     masterChefPool = new _HelperStore(event.address.toHexString() + "-" + pid.toString());
     let poolInfo = poolContract.try_poolInfo(pid);
-    let lpTokenAddress = ZERO_ADDRESS.toHexString();
+    let lpTokenAddress = ZERO_ADDRESS_STRING;
     if (!poolInfo.reverted) {
-      lpTokenAddress = poolInfo.value.value1.toHexString();
+
+      lpTokenAddress = poolInfo.value.value0.toHexString();
     }
     masterChefPool.valueString = lpTokenAddress;
     masterChefPool.valueBigInt = BIGINT_ZERO;
@@ -81,10 +82,13 @@ export function handleRewardOld(event: ethereum.Event, pid: BigInt, amount: BigI
   log.warning("totalAllocPoint: " + totalAllocPoint.toString(), []);
 
   // Calculate Reward Emission per Block
-  let rewardTokenRate = multiplier
+  let rewardTokenRate = BIGINT_ZERO
+  if(lastRewardBlock < event.block.number){
+     rewardTokenRate = multiplier
     .times(rewardTokenPerBlock)
     .times(poolAllocPoint)
     .div(totalAllocPoint);
+  }
 
   let rewardTokenRateBigDecimal = BigDecimal.fromString(rewardTokenRate.toString());
   let rewardTokenPerDay = getRewardsPerDay(event.block.timestamp, event.block.number, rewardTokenRateBigDecimal, RewardIntervalType.BLOCK);
@@ -106,14 +110,14 @@ export function handleRewardOld(event: ethereum.Event, pid: BigInt, amount: BigI
 
 
 export function handleReward(event: ethereum.Event, pid: BigInt, amount: BigInt, usageType: string): void {
-    let masterChefPool = _HelperStore.load(event.address.toHexString() + "-" + pid.toString());
+  let masterChefPool = _HelperStore.load(event.address.toHexString() + "-" + pid.toString());
     let poolContract = MasterChefProxy.bind(event.address);
   
     // Create entity to track masterchef pool mappings
     if (!masterChefPool) {
       masterChefPool = new _HelperStore(event.address.toHexString() + "-" + pid.toString());
       let getlpAddress = poolContract.try_lpToken(pid);
-      let lpTokenAddress = ZERO_ADDRESS.toHexString();
+      let lpTokenAddress = ZERO_ADDRESS_STRING;
       if (!getlpAddress.reverted) {
         lpTokenAddress = getlpAddress.value.toHexString();
       }

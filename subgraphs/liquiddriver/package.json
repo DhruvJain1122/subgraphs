@@ -1,19 +1,19 @@
 {
-  "name": "yearn-v2",
+  "name": "liquiddriver",
   "license": "MIT",
   "scripts": {
     "codegen": "graph codegen",
     
     "build:fantom": "yarn prepare:fantom && graph build",
     "prepare:fantom": "mustache config/fantom.json subgraph.template.yaml > subgraph.yaml",
-    "thegraph:deploy:fantom": "graph deploy --node https://api.thegraph.com/deploy/ harsh9200/yearn-v2-fantom",
+    "thegraph:deploy:fantom": "graph deploy --product hosted-service amritkumarj/liquiddriver",
     "deploy:fantom": "yarn prepare:fantom && yarn build:fantom && yarn thegraph:deploy:fantom",
     
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ harsh9200/yearn-v2",
-    "create-local": "graph create --node http://localhost:8020/  harsh9200/yearn-v2",
-    "remove-local": "graph remove --node http://localhost:8020/  harsh9200/yearn-v2",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001  harsh9200/yearn-v2"
+    "deploy": "graph deploy --product hosted-service amritkumarj/liquiddriver",
+    "create-local": "graph create --node http://localhost:8020/ amritkumarj/liquiddriver",
+    "remove-local": "graph remove --node http://localhost:8020/  amritkumarj/liquiddriver",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001  amritkumarj/liquiddriver"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.28.0",

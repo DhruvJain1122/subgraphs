@@ -6,7 +6,7 @@ dataSources:
   ##ShadowFarm Staking##
   - kind: ethereum
     name: "SPIRIT_STAKING"
-    network: "fantom"
+    network: fantom
     source:
       startBlock: 22531313
       address: '0x1CC765cD7baDf46A215bD142846595594AD4ffe3'
@@ -66,18 +66,84 @@ dataSources:
         - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
           handler: handleDeposit
         - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelWithdraw
+          handler: handleWithdraw
         - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelEmergencyWithdraw
+          handler: handleEmergencyWithdraw
+      file: ./src/mappings/shadowFarmMapping.ts
+  - kind: ethereum
+    name: "HND_STAKING"
+    network: fantom
+    source:
+      startBlock: 31948739
+      address: '0xdf2dA1E24ADa883366972A73d23d1aDDA8CF7CD2'
+      abi: ShadowStaking
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - NewVault
+      abis:
+        - name: ShadowStaking
+          file: ./abis/Ethereum/ShadowStaking.json
+        - name: HNDMasterChef
+          file: ./abis/Ethereum/HNDMasterChef.json
+        - name: SPIRITMasterChef
+          file: ./abis/Ethereum/SPIRITMasterChef.json
+        - name: ERC20
+          file: ./abis/Ethereum/ERC20.json
+        
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
+        - name: PriceOracleERC20
+          file: ./abis/Prices/ERC20.json
+        # Curve Contracts
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CurvePoolRegistry
+          file: ./abis/Prices/Curve/PoolRegistry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        # ChainLink Contracts
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
+        # SushiSwap Contracts
+        - name: SushiSwapRouter
+          file: ./abis/Prices/SushiSwap/Router.json
+        - name: SushiSwapFactory
+          file: ./abis/Prices/SushiSwap/Factory.json
+        - name: SushiSwapPair
+          file: ./abis/Prices/SushiSwap/Pair.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+      eventHandlers:
+        - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
+          handler: handleWithdraw
+        - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
+          handler: handleEmergencyWithdraw
       file: ./src/mappings/shadowFarmMapping.ts
   ##ShadowFarm Staking##
 
  ## MASTERCHEF OLD##
   - kind: ethereum
     name: "OldMasterChef"
-    network: "fantom"
+    network: fantom
     source:
-      startBlock: 
+      startBlock: 5686982
       address: '0x742474dAE70Fa2AB063aB786b1fBe5704e861a0c'
       abi: OldMasterChef
     mapping:
@@ -129,21 +195,20 @@ dataSources:
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
         - event: Deposit(indexed address,indexed uint256,uint256)
-          handler: handelDepositMasterChefOld
+          handler: handleDepositMasterChefOld
         - event: Withdraw(indexed address,indexed uint256,uint256)
-          handler: handelWithdrawMasterChefOld
+          handler: handleWithdrawMasterChefOld
         - event: EmergencyWithdraw(indexed address,indexed uint256,uint256)
-          handler: handelEmergencyWithdrawMasterChefOld
+          handler: handleEmergencyWithdrawMasterChefOld
       file: ./src/mappings/masterchefMapping.ts
   
   ## MASTERCHEF OLD##
 
-
   - kind: ethereum
     name: "MasterChefProxy"
-    network: "fantom"
+    network: fantom
     source:
-      startBlock: 
+      startBlock: 15999584
       address: '0x6e2ad6527901c9664f016466b8da1357a004db0f'
       abi: MasterChefProxy
     mapping:
@@ -195,16 +260,16 @@ dataSources:
           file: ./abis/Prices/Calculations/SushiSwap.json
       eventHandlers:
         - event: Deposit(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelDepositMasterChef
+          handler: handleDepositMasterChef
         - event: Withdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelWithdrawMasterChef
+          handler: handleWithdrawMasterChef
         - event: EmergencyWithdraw(indexed address,indexed uint256,uint256,indexed address)
-          handler: handelEmergencyWithdrawMasterChef
+          handler: handleEmergencyWithdrawMasterChef
       file: ./src/mappings/masterchefMapping.ts
   
   - kind: ethereum
     name: "DistributorV1"
-    network: "fantom"
+    network: fantom
     source:
       startBlock: 17602438
       address: '0x3D29859B742427065B459DD1c6e7E29B0343425a'
@@ -262,7 +327,7 @@ dataSources:
       file: ./src/mappings/distributorMappings.ts
   - kind: ethereum
     name: "DistributorV2"
-    network: "fantom"
+    network: fantom
     source:
       startBlock: 20973232
       address: '0xBA4284DF6566D967b80F71f9aF544D104491b2d3'
@@ -320,7 +385,7 @@ dataSources:
       file: ./src/mappings/distributorMappings.ts
   - kind: ethereum
     name: "DistributorV3"
-    network: "fantom"
+    network: fantom
     source:
       startBlock: 24903666
       address: '0x095010A79B28c99B2906A8dc217FC33AEfb7Db93'
@@ -378,7 +443,7 @@ dataSources:
       file: ./src/mappings/distributorMappings.ts
   - kind: ethereum
     name: "DistributorV4"
-    network: "fantom"
+    network: fantom
     source:
       startBlock: 34627402
       address: '0x326236f487aC37Fc2CB69569b20173e9ccF639C9'

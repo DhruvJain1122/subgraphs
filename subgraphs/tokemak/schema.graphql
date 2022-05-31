@@ -322,10 +322,10 @@ type Vault @entity {
 
   ##### Quantitative Data #####
 
-  totalValueLockedUSD: BigDecimal!
+  totalValueLockedUSD: BigDecimal
 
   " Total volume in USD "
-  totalVolumeUSD: BigDecimal!
+  totalVolumeUSD: BigDecimal
 
   " Amount of input tokens in the vault. The ordering should be the same as the vault's `inputTokens` field. "
   inputTokenBalances: [BigInt!]!
@@ -334,7 +334,7 @@ type Vault @entity {
   outputTokenSupply: BigInt!
 
   " Price per share of output token in USD "
-  outputTokenPriceUSD: BigDecimal!
+  outputTokenPriceUSD: BigDecimal
 
   " Creation timestamp "
   createdTimestamp: BigInt!
@@ -351,9 +351,9 @@ type Vault @entity {
 
   symbol: String
 
-  depositLimit: BigInt!
+  depositLimit: BigInt
 
-  fees: [VaultFee!]!
+  fees: [VaultFee!]
 
   deposits: [Deposit!]! @derivedFrom(field: "vault")
 

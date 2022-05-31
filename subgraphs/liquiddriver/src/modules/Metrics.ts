@@ -17,7 +17,7 @@ import { Address, ethereum } from "@graphprotocol/graph-ts";
 export function updateUsageMetrics(block: ethereum.Block, from: Address): void {
   const account = getOrCreateAccount(from.toHexString());
 
-  const protocol = getOrCreateYieldAggregator(constants.ETHEREUM_PROTOCOL_ID);
+  const protocol = getOrCreateYieldAggregator(constants.PROTOCOL_ID);
   const usageMetricsDaily = getOrCreateUsageMetricsDailySnapshot(block);
   const usageMetricsHourly = getOrCreateUsageMetricsHourlySnapshot(block);
 
@@ -68,6 +68,14 @@ export function updateVaultSnapshots(
     vaultAddress,
     block
   );
+  vaultDailySnapshots.stakedOutputTokenAmount = vault.stakedOutputTokenAmount!
+  vaultHourlySnapshots.stakedOutputTokenAmount = vault.stakedOutputTokenAmount!
+
+  vaultDailySnapshots.rewardTokenEmissionsAmount = vault.rewardTokenEmissionsAmount
+  vaultHourlySnapshots.rewardTokenEmissionsAmount = vault.rewardTokenEmissionsAmount
+
+  vaultDailySnapshots.rewardTokenEmissionsUSD = vault.rewardTokenEmissionsUSD
+  vaultHourlySnapshots.rewardTokenEmissionsUSD = vault.rewardTokenEmissionsUSD
 
   vaultDailySnapshots.totalValueLockedUSD = vault.totalValueLockedUSD;
   vaultHourlySnapshots.totalValueLockedUSD = vault.totalValueLockedUSD;
@@ -96,7 +104,7 @@ export function updateVaultSnapshots(
 
 export function updateFinancials(block: ethereum.Block): void {
   const financialMetrics = getOrCreateFinancialDailySnapshots(block);
-  const protocol = getOrCreateYieldAggregator(constants.ETHEREUM_PROTOCOL_ID);
+  const protocol = getOrCreateYieldAggregator(constants.PROTOCOL_ID);
 
   financialMetrics.totalValueLockedUSD = protocol.totalValueLockedUSD;
   financialMetrics.cumulativeSupplySideRevenueUSD =
